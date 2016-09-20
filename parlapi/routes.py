@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from flask import abort, jsonify
 
-def setup_routes(app):
+
+def setup_routes(app, api):
+    api.setup_routes(app)
+
     @app.route('/')
     def hello():
-        return 'Hi!'
+        return 'Bienvenue sur ParlAPI :)'

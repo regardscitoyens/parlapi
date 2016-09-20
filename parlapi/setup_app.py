@@ -14,8 +14,12 @@ def setup_app(name):
     from .models import db
     db.init_app(app)
 
+    # Setup API
+    from .api import setup_api
+    api = setup_api(app)
+
     # Setup routes
     from .routes import setup_routes
-    setup_routes(app)
+    setup_routes(app, api)
 
     return app

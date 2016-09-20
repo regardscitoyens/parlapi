@@ -21,10 +21,12 @@ setup(
         'beautifulsoup4>=4.4,<5',
         'click>=6.6,<7',
         'flask>=0.11,<0.12',
+        'flask-marshmallow>=0.7,<0.8',
         'flask-sqlalchemy>=2.1,<3',
         'html5lib>=0.9999999,<1',
         'ijson>=2.3,<3',
-        'requests>=2.10,<3'
+        'marshmallow-sqlalchemy>=0.10,<0.11',
+        'requests>=2.10,<3',
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
