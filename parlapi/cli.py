@@ -33,5 +33,15 @@ def update_organes_an(force):
         run(app, force)
 
 
+@cli.command(short_help=u'Met à jour les acteurs depuis l\'AN')
+@click.option('--force', is_flag=True)
+def update_acteurs_an(force):
+    from .parlapi import app
+    from .jobs.an_acteurs import run
+
+    with app.app_context():
+        run(app, force)
+
+
 if __name__ == '__main__':
     cli()

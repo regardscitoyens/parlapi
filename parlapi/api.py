@@ -3,7 +3,7 @@
 from flask import abort, jsonify
 from flask_marshmallow import Marshmallow
 
-from .models import Regime, Legislature, Organe
+from .models import Regime, Legislature, Organe, Acteur
 
 
 class API(object):
@@ -89,6 +89,13 @@ def setup_api(app):
 
         _url = detailURL('organes')
 
+    class ActeurBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = Acteur
+            fields = ('nom', 'prenom', '_url')
+
+        _url = detailURL('acteurs')
+
     # Detailed schemas
 
     class RegimeDetailSchema(RegimeBaseSchema):
@@ -112,6 +119,10 @@ def setup_api(app):
         regime = nested(RegimeBaseSchema)
         legislature = nested(LegislatureBaseSchema)
 
+    class ActeurDetailSchema(ActeurBaseSchema):
+        class Meta(ActeurBaseSchema.Meta):
+            fields = ()
+
     # API creation
 
     return API([
@@ -132,5 +143,11 @@ def setup_api(app):
             'description': u'Organes (ministères, commissions, organismes...)',
             'schema': OrganeDetailSchema,
             'list_schema': OrganeBaseSchema
+        },
+        {
+            'model': Acteur,
+            'description': u'Acteurs (ministres, parlementaires...)',
+            'schema': ActeurDetailSchema,
+            'list_schema': ActeurBaseSchema
         },
     ])

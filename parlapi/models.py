@@ -49,7 +49,7 @@ class Organe(db.Model):
     __tablename__ = 'organes'
 
     id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id_an = db.Column(db.String(SHORT_STRING))
     type = db.Column(db.String(SHORT_STRING))
     libelle = db.Column(db.String(LARGE_STRING))
     libelle_court = db.Column(db.String(MEDIUM_STRING))
@@ -68,3 +68,24 @@ Regime.organes = db.relationship("Organe", order_by=Organe.id,
                                  back_populates="regime")
 Legislature.organes = db.relationship("Organe", order_by=Organe.id,
                                       back_populates="legislature")
+
+
+class Acteur(db.Model):
+    __tablename__ = 'acteurs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_an = db.Column(db.String(SHORT_STRING))
+
+    civilite = db.Column(db.String(SHORT_STRING))
+    nom = db.Column(db.String(MEDIUM_STRING))
+    prenom = db.Column(db.String(MEDIUM_STRING))
+
+    date_naissance = db.Column(db.Date)
+    pays_naissance = db.Column(db.String(MEDIUM_STRING))
+    dept_naissance = db.Column(db.String(MEDIUM_STRING))
+    ville_naissance = db.Column(db.String(MEDIUM_STRING))
+    date_deces = db.Column(db.Date)
+
+    profession = db.Column(db.String(MEDIUM_STRING))
+    profession_cat_insee = db.Column(db.String(MEDIUM_STRING))
+    profession_fam_insee = db.Column(db.String(MEDIUM_STRING))
