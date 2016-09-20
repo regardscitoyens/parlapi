@@ -13,8 +13,7 @@ setup(
     author_email="joyard.nicolas@gmail.com",
     description=("A browsable API over French parliament data dumps"),
     license="MIT",
-    keywords="django politics open data france french parliament senat"
-    "assemblee nationale",
+    keywords="django politics open data france french parliament senat assemblee nationale",
     url="https://github.com/njoyard/parlapi",
     packages=['parlapi'],
     long_description=read('README.md'),
@@ -31,7 +30,7 @@ setup(
         "Development Status :: 3 - Alpha",
         "Framework :: Flask",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     ],
     entry_points='''
         [console_scripts]

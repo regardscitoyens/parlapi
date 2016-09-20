@@ -3,4 +3,5 @@
 *.pyc
 *~
 data/*.json
+data/*.zip
 reference
