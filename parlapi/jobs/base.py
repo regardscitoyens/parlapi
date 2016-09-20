@@ -3,6 +3,7 @@
 from builtins import filter
 from datetime import datetime
 import os
+import traceback
 from zipfile import ZipFile
 
 from bs4 import BeautifulSoup
@@ -125,7 +126,8 @@ class BaseANJob(BaseJob):
                     try:
                         self.parse_json(f, zf)
                     except Exception, e:
-                        self.error(u'Erreur: %s' % e)
+                        stack = ''.join(traceback.format_exc())
+                        self.error(u'Erreur: %s\n%s' % (e, stack))
 
         self.info(u'Job terminé')
         self.update_status('ok', jsonzip_url, jsonzip_lmd)

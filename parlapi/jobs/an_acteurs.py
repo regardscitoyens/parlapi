@@ -4,10 +4,11 @@ import dateparser
 import ijson
 
 from .base import BaseANJob
-from ..models import Acteur
+from ..models import Organe, Acteur, Mandat
 
 
 class ImportActeursJob(BaseANJob):
+    cache_organes = {}
 
     @property
     def job_name(self):
@@ -20,6 +21,12 @@ class ImportActeursJob(BaseANJob):
     def parse_json(self, filename, stream):
         for acteur_json in ijson.items(stream, 'export.acteurs.acteur.item'):
             self.save_acteur(acteur_json)
+
+    def get_organe(self, id_an):
+        if id_an not in self.cache_organes:
+            self.cache_organes[id_an] = self.get_or_create(Organe, id_an=id_an)
+
+        return self.cache_organes[id_an]
 
     def save_acteur(self, json):
         acteur = self.get_or_create(Acteur, id_an=json['uid']['#text'])
@@ -46,6 +53,48 @@ class ImportActeursJob(BaseANJob):
         acteur.profession = pro['libelleCourant']
         acteur.profession_cat_insee = pro['socProcINSEE']['catSocPro']
         acteur.profession_fam_insee = pro['socProcINSEE']['famSocPro']
+
+        for mandat_json in json['mandats']['mandat']:
+            self.save_mandat(acteur, mandat_json)
+
+    def save_mandat(self, acteur, json):
+        if not isinstance(json['organes']['organeRef'], basestring):
+            self.warn(u'Mandat %s à organes multiples, ignoré' % json['uid'])
+            return
+
+        mandat = self.get_or_create(Mandat, id_an=json['uid'])
+
+        mandat.acteur = acteur
+        mandat.organe = self.get_organe(json['organes']['organeRef'])
+
+        mandat.date_debut = dateparser.parse(json['dateDebut'])
+        if json.get('datePublication', None):
+            mandat.date_publication = dateparser.parse(json['datePublication'])
+        if json.get('dateFin', None):
+            mandat.date_fin = dateparser.parse(json['dateFin'])
+
+        mandat.qualite = json['infosQualite']['codeQualite']
+        mandat.preseance = int(json['preseance'])
+        mandat.nomination_principale = json['nominPrincipale'] == '1'
+
+        if json.get('libelle', None):
+            mandat.libelle = json['libelle']
+
+        if json.get('InfosHorsSIAN', None):
+            if json['InfosHorsSIAN'].get('HATVP_URI', None):
+                mandat.url_hatvp = json['InfosHorsSIAN']['HATVP_URI']
+
+        if 'election' in json:
+            el = json['election']
+            li = el['lieu']
+
+            mandat.election_region = li['region']
+            mandat.election_dept = li['departement']
+            mandat.election_dept_num = li['numDepartement']
+            mandat.election_cause = el['causeMandat']
+
+            if li['numCirco']:
+                mandat.election_circo = int(li['numCirco'])
 
 
 def run(app, force):

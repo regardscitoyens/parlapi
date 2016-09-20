@@ -89,3 +89,39 @@ class Acteur(db.Model):
     profession = db.Column(db.String(MEDIUM_STRING))
     profession_cat_insee = db.Column(db.String(MEDIUM_STRING))
     profession_fam_insee = db.Column(db.String(MEDIUM_STRING))
+
+
+class Mandat(db.Model):
+    __tablename__ = 'mandats'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_an = db.Column(db.String(SHORT_STRING))
+
+    date_debut = db.Column(db.Date)
+    date_publication = db.Column(db.Date)
+    date_fin = db.Column(db.Date)
+
+    libelle = db.Column(db.String(LARGE_STRING))
+    qualite = db.Column(db.String(MEDIUM_STRING))
+    preseance = db.Column(db.Integer)
+    nomination_principale = db.Column(db.Boolean)
+
+    url_hatvp = db.Column(db.String(LARGE_STRING))
+
+    election_region = db.Column(db.String(MEDIUM_STRING))
+    election_dept = db.Column(db.String(MEDIUM_STRING))
+    election_dept_num = db.Column(db.String(SHORT_STRING))
+    election_circo = db.Column(db.Integer)
+    election_cause = db.Column(db.String(MEDIUM_STRING))
+
+    organe_id = db.Column(db.Integer, db.ForeignKey('organes.id'))
+    organe = db.relationship("Organe", back_populates="mandats")
+
+    acteur_id = db.Column(db.Integer, db.ForeignKey('acteurs.id'))
+    acteur = db.relationship("Acteur", back_populates="mandats")
+
+
+Organe.mandats = db.relationship("Mandat", order_by=Mandat.id,
+                                 back_populates="organe")
+Acteur.mandats = db.relationship("Mandat", order_by=Mandat.id,
+                                 back_populates="acteur")
