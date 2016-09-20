@@ -2,7 +2,6 @@
 
 from builtins import filter
 from datetime import datetime
-import logging
 import os
 from zipfile import ZipFile
 
