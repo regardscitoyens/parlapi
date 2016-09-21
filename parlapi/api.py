@@ -66,7 +66,7 @@ def setup_api(app):
     def nestedList(schema):
         return ma.List(ma.Nested(schema))
 
-    # Base schemas (for use in lists)
+    # Base schemas (for use in lists & some relations)
 
     class RegimeBaseSchema(ma.ModelSchema):
         class Meta:
@@ -99,10 +99,23 @@ def setup_api(app):
     class MandatBaseSchema(ma.ModelSchema):
         class Meta:
             model = Mandat
-            fields = ('qualite', 'organe', '_url')
+            fields = ('qualite', '_url')
+
+        _url = detailURL('mandats')
+
+    # Semi-detailed schemas (for use in some relations)
+
+    class MandatActeurSchema(MandatBaseSchema):
+        class Meta(MandatBaseSchema.Meta):
+            fields = MandatBaseSchema.Meta.fields + ('organe',)
 
         organe = nested(OrganeBaseSchema)
-        _url = detailURL('mandats')
+
+    class MandatOrganeSchema(MandatBaseSchema):
+        class Meta(MandatBaseSchema.Meta):
+            fields = MandatBaseSchema.Meta.fields + ('acteur',)
+
+        acteur = nested(ActeurBaseSchema)
 
     # Detailed schemas
 
@@ -124,14 +137,15 @@ def setup_api(app):
         class Meta(OrganeBaseSchema.Meta):
             fields = ()
 
-        regime = nested(RegimeBaseSchema)
         legislature = nested(LegislatureBaseSchema)
+        mandats = nestedList(MandatOrganeSchema)
+        regime = nested(RegimeBaseSchema)
 
     class ActeurDetailSchema(ActeurBaseSchema):
         class Meta(ActeurBaseSchema.Meta):
             fields = ()
 
-        mandats = nestedList(MandatBaseSchema)
+        mandats = nestedList(MandatActeurSchema)
 
     class MandatDetailSchema(MandatBaseSchema):
         class Meta(MandatBaseSchema.Meta):
