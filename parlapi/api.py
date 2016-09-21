@@ -176,6 +176,12 @@ def setup_api(app):
 
     # Semi-detailed schemas (for use in some relations)
 
+    class MandatListSchema(MandatBaseSchema):
+        class Meta(MandatBaseSchema.Meta):
+            fields = MandatBaseSchema.Meta.fields + ('acteur', 'organe',)
+        organe = api.nested(OrganeBaseSchema)
+        acteur = api.nested(ActeurBaseSchema)
+
     class MandatActeurSchema(MandatBaseSchema):
         class Meta(MandatBaseSchema.Meta):
             fields = MandatBaseSchema.Meta.fields + ('organe',)
@@ -258,7 +264,7 @@ def setup_api(app):
     api.endpoint(
         Mandat,
         MandatDetailSchema,
-        list_schema=MandatBaseSchema,
+        list_schema=MandatListSchema,
         description=u'Mandats'
     )
 
