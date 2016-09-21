@@ -13,6 +13,7 @@ class Config(object):
         'postgresql://parlapi:parlapi@localhost:5432/parlapi'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DATA_DIR = os.path.join(BASE_DIR, 'data')
+    API_PAGE_SIZE = 10
 
 
 class DebugConfig(Config):
