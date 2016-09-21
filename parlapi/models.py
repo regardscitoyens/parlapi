@@ -28,6 +28,10 @@ class Regime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(MEDIUM_STRING))
 
+    organes = db.relationship("Organe", back_populates="regime")
+
+    legislatures = db.relationship("Legislature", back_populates="regime")
+
 
 class Legislature(db.Model):
     __tablename__ = 'legislatures'
@@ -40,9 +44,7 @@ class Legislature(db.Model):
     regime_id = db.Column(db.Integer, db.ForeignKey('regimes.id'))
     regime = db.relationship("Regime", back_populates="legislatures")
 
-
-Regime.legislatures = db.relationship("Legislature", order_by=Legislature.id,
-                                      back_populates="regime")
+    organes = db.relationship("Organe", back_populates="legislature")
 
 
 class Organe(db.Model):
@@ -63,11 +65,7 @@ class Organe(db.Model):
     legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
     legislature = db.relationship("Legislature", back_populates="organes")
 
-
-Regime.organes = db.relationship("Organe", order_by=Organe.id,
-                                 back_populates="regime")
-Legislature.organes = db.relationship("Organe", order_by=Organe.id,
-                                      back_populates="legislature")
+    mandats = db.relationship("Mandat", back_populates="organe")
 
 
 class Acteur(db.Model):
@@ -89,6 +87,8 @@ class Acteur(db.Model):
     profession = db.Column(db.String(MEDIUM_STRING))
     profession_cat_insee = db.Column(db.String(MEDIUM_STRING))
     profession_fam_insee = db.Column(db.String(MEDIUM_STRING))
+
+    mandats = db.relationship("Mandat", back_populates="acteur")
 
 
 class Mandat(db.Model):
@@ -119,9 +119,3 @@ class Mandat(db.Model):
 
     acteur_id = db.Column(db.Integer, db.ForeignKey('acteurs.id'))
     acteur = db.relationship("Acteur", back_populates="mandats")
-
-
-Organe.mandats = db.relationship("Mandat", order_by=Mandat.id,
-                                 back_populates="organe")
-Acteur.mandats = db.relationship("Mandat", order_by=Mandat.id,
-                                 back_populates="acteur")
