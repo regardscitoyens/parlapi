@@ -1,0 +1,11 @@
+#!/bin/bash
+set -xe
+
+source ${OPENSHIFT_HOMEDIR}app-root/runtime/dependencies/python/virtenv/bin/activate
+
+pip install -U pip setuptools
+pip install -Ue ${OPENSHIFT_REPO_DIR}
+
+export PARLAPI_CONFIG=OpenshiftConfig
+
+parlapi createdb

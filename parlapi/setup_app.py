@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from flask import Flask
 
 
@@ -8,7 +10,9 @@ def setup_app(name):
     app = Flask(name)
 
     # Load config
-    app.config.from_object('parlapi.config.CurrentConfig')
+    config_obj = os.environ.get('PARLAPI_CONFIG',
+                                'parlapi.config.DefaultConfig')
+    app.config.from_object(config_obj)
 
     # Setup DB
     from .models import db

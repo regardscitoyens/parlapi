@@ -1,0 +1,2 @@
+export OPENSHIFT_PYTHON_WSGI_APPLICATION=wsgi.py
+export PARLAPI_CONFIG=parlapi.config.OpenshiftConfig

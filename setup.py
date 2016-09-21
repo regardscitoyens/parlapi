@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'beautifulsoup4>=4.4,<5',
         'click>=6.6,<7',
+        'dateparser>=0.4,<0.5',
         'flask>=0.11,<0.12',
         'flask-marshmallow>=0.7,<0.8',
         'flask-sqlalchemy>=2.1,<3',

@@ -41,3 +41,16 @@ $ parlapi update_organes_an
 $ parlapi update_acteurs_an
 $ parlapi runserver
 ```
+
+### Déploiement Openshift
+
+```bash
+$ export APP=parlapi
+$ rhc app-create $APP python-2.7 postgresql-9.2
+$ rhc env set -a $APP OPENSHIFT_PYTHON_WSGI_APPLICATION=wsgi.py
+$ rhc env set -a $APP PARLAPI_CONFIG=parlapi.config.OpenshiftConfig
+$ rhc app show -a $APP | grep Git
+  Git URL:    ssh://xxx@parlapi-xxx.rhcloud.com/~/git/parlapi.git/
+$ git remote add openshift ssh://xxx@parlapi-xxx.rhcloud.com/~/git/parlapi.git/
+$ git push --force openshift openshift:master
+```
