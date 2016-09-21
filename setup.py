@@ -26,6 +26,7 @@ setup(
         'html5lib>=0.9999999,<1',
         'ijson>=2.3,<3',
         'marshmallow-sqlalchemy>=0.10,<0.11',
+        'psycopg2>=2,<3',
         'requests>=2.10,<3',
     ],
     classifiers=[
