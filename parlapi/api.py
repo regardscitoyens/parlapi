@@ -85,7 +85,7 @@ def setup_api(app):
     class OrganeBaseSchema(ma.ModelSchema):
         class Meta:
             model = Organe
-            fields = ('libelle', '_url')
+            fields = ('libelle', 'type', '_url')
 
         _url = detailURL('organes')
 
