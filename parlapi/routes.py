@@ -13,5 +13,4 @@ def setup_routes(app, api):
     def home():
         jobs = Job.query.all()
         return render_template('index.html', api=api.descriptions,
-                               api_prefix=api_prefix, jobs=jobs,
-                               logo=url_for('static', filename='parlapi.png'))
+                               api_prefix=api_prefix, jobs=jobs)

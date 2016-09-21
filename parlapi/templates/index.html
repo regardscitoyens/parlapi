@@ -2,12 +2,12 @@
 <head>
   <title>ParlAPI</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
-  <link rel="icon" type="image/png" href="{{ logo }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
 </head>
 <body>
   <section class="container-fluid">
     <header class="col-md-12 page-header">
-      <img src="{{ logo }}" class="pull-right" style="margin-top: 1em;">
+      <img src="{{ url_for('static', filename='parlapi.png') }}" class="pull-right" style="margin-top: 1em;">
       <h1>Bienvenue sur ParlAPI</h1>
       <article class="alert alert-info">
         <p><b>L'objectif de ParlAPI est de fournir une API réellement utilisable sur l'Open Data parlementaire.</b></p>
