@@ -7,8 +7,11 @@
 <body>
   <section class="container-fluid">
     <header class="col-md-12 page-header">
-      <img src="{{ url_for('static', filename='parlapi.png') }}" class="pull-right" style="margin-top: 1em;">
-      <h1>Bienvenue sur ParlAPI</h1>
+      <h1>
+        <img src="{{ url_for('static', filename='parlapi.png') }}" class="pull-right" style="margin-right: 25px;">
+        Bienvenue sur ParlAPI
+      </h1>
+
       <article class="alert alert-info">
         <p><b>L'objectif de ParlAPI est de fournir une API réellement utilisable sur l'Open Data parlementaire.</b></p>
         <p>Les données proviennent des portails Open Data parlementaires :</p>
@@ -27,7 +30,7 @@
 
       <section class="panel panel-default">
         <header class="panel-heading">
-          API REST
+          <b>API REST</b>
         </header>
         <article class="panel-body">
           <p>L'API REST donne accès en lecture seule aux données au format JSON.</p>
@@ -54,7 +57,7 @@
     <div class="col-md-6">
       <section class="panel panel-default">
         <header class="panel-heading">
-          Sources de données
+          <b>Sources de données</b>
         </header>
         <article class="panel-body">
           <p>Le tableau ci-dessous montre les travaux d'import des données et le résultat de leur dernière exécution.</p>
@@ -89,16 +92,27 @@
 
   <footer class="well text-center">
     <small>
-      <p>ParlAPI est un <a href="https://github.com/njoyard/parlapi" target="_blank">logiciel libre</a>,
-      distribué sous <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">license AGPLv3</a> &mdash;
+      <p>
+        ParlAPI est un <a href="https://github.com/regardscitoyens/parlapi" target="_blank">logiciel libre</a>,
+        distribué sous <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">
+          license <img src="https://www.gnu.org/graphics/agplv3-155x51.png" alt="AGPLv3" style="height: 1.5em;"></a>
+
+        &mdash;
+
         Les données sont réutilisables sous license
         <a href="http://creativecommons.org/licenses/by-sa/2.0/fr/" target="_blank">
-          <img src="https://i.creativecommons.org/l/by-sa/2.0/fr/80x15.png" alt="CC-BY-SA">
-        </a>
-        et <a href="http://opendatacommons.org/licenses/odbl/">ODbL</a>.</p>
+          <img src="https://i.creativecommons.org/l/by-sa/2.0/fr/80x15.png" alt="CC-BY-SA"></a>
+        et <a href="http://opendatacommons.org/licenses/odbl/">ODbL</a>
+
+        &mdash;
+
+        <a href="https://www.regardscitoyens.org/" target="_blank">
+          <img src="{{ url_for('static', filename='rc.png') }}" style="height: 1.5em; vertical-align: top;">
+          Regards Citoyens</a>
+      </p>
 
       <p>
-        Vous êtes libre de réutiliser, modifier et recouper les données dans la mesure où vous indiquez leur source et que vous republiez les données modifiées ayant servi lors d'une réutilisation publiée.
+        <i>Vous êtes libre de réutiliser, modifier et recouper les données dans la mesure où vous indiquez leur source et que vous republiez les données modifiées ayant servi lors d'une réutilisation publiée.</i>
       </p>
     </small>
   </footer>

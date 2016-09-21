@@ -24,7 +24,7 @@ n'est ajoutée au modèle.
 ### Installation
 
 ```bash
-$ git clone https://github.com/njoyard/parlapi
+$ git clone https://github.com/regardscitoyens/parlapi
 $ cd parlapi
 $ virtualenv ve
 $ source ve/bin/activate
