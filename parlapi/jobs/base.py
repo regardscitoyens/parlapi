@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import filter
 from datetime import datetime
 import os
 import traceback
@@ -81,7 +80,7 @@ class BaseANJob(BaseJob):
             return a['href'].endswith('.json.zip')
 
         try:
-            link = next(filter(match_link, soup.select('a[href]')))
+            link = [a for a in soup.select('a[href]') if match_link(a)][0]
         except:
             self.error(u'Lien vers dump JSON introuvable')
             self.update_status('error:json-link')

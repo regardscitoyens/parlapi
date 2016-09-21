@@ -6,6 +6,6 @@ source ${OPENSHIFT_HOMEDIR}app-root/runtime/dependencies/python/virtenv/bin/acti
 pip install -U pip setuptools
 pip install -Ue ${OPENSHIFT_REPO_DIR}
 
-export PARLAPI_CONFIG=OpenshiftConfig
+export PARLAPI_CONFIG=parlapi.config.OpenshiftConfig
 
 parlapi createdb
