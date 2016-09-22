@@ -42,6 +42,9 @@ class API(object):
             'detail_schema': self.add_list_url(detail_schema),
             'list_schema': self.add_pagination(kwargs.get('list_schema',
                                                           detail_schema)),
+            'detail_query': kwargs.get(
+                'detail_query', lambda id: model.query.filter_by(id=id)),
+            'list_query': kwargs.get('list_query', lambda: model.query),
             'description': kwargs.get('description', table)
         }
 
@@ -69,24 +72,21 @@ class API(object):
 
         return PaginatedSchema
 
-    def get_schema_or_404(self, table):
+    def get_endpoint_or_404(self, table, detail=False):
         if table not in self.endpoints:
             abort(404)
 
-        item = self.endpoints[table]
-        model = item['model']
-        detail_schema = item['detail_schema']
-        list_schema = item['list_schema']
-
-        return list_schema, detail_schema, model
+        endpoint = self.endpoints[table]
+        prefix = 'detail' if detail else 'list'
+        return endpoint['%s_schema' % prefix], endpoint['%s_query' % prefix]
 
     def get_list_or_404(self, table):
-        list_schema, detail_schema, model = self.get_schema_or_404(table)
+        schema, get_query = self.get_endpoint_or_404(table)
 
         page = int(request.args.get('page') or 1)
         size = int(request.args.get('page_size') or self.page_size)
 
-        data = model.query.paginate(page, size)
+        data = get_query().paginate(page, size)
         obj = {
             '_count': data.total,
             '_items': data.items,
@@ -106,15 +106,19 @@ class API(object):
                 '&page_size=%d' % size if size != self.page_size else ''
             )
 
-        result = list_schema().dump(obj)
+        result = schema().dump(obj)
         return jsonify(result.data)
 
     def get_detail_or_404(self, table, id):
-        list_schema, detail_schema, model = self.get_schema_or_404(table)
+        schema, get_query = self.get_endpoint_or_404(table, True)
 
-        item = model.query.get_or_404(id)
+        item = get_query(id).one()
+        try:
+            pass
+        except:
+            abort(404)
 
-        result = detail_schema().dump(item)
+        result = schema().dump(item)
         return jsonify(result.data)
 
     def setup_routes(self, app, prefix='/api/'):
