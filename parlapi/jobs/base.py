@@ -21,7 +21,6 @@ class BaseJob(object):
     def job(self):
         if not self._job:
             self._job = self.get_or_create(Job, nom=self.job_name)
-
         return self._job
 
     def __init__(self, app):
@@ -74,7 +73,12 @@ class BaseANJob(BaseJob):
     def run(self, ignore_lmd=False):
         self.info(u'Téléchargement %s' % self.url)
 
-        soup = BeautifulSoup(requests.get(self.url).content, 'html5lib')
+        try:
+            soup = BeautifulSoup(requests.get(self.url).content, 'html5lib')
+        except:
+            self.error(u'Téléchargement %s impossible' % self.url)
+            self.update_status('error:download-html')
+            return
 
         def match_link(a):
             return a['href'].endswith('.json.zip')
@@ -82,8 +86,8 @@ class BaseANJob(BaseJob):
         try:
             link = [a for a in soup.select('a[href]') if match_link(a)][0]
         except:
-            self.error(u'Lien vers dump JSON introuvable')
-            self.update_status('error:json-link')
+            self.error(u'Lien vers dump .json.zip introuvable')
+            self.update_status('error:zip-link')
             return
 
         jsonzip_url = link['href']
@@ -95,38 +99,50 @@ class BaseANJob(BaseJob):
         try:
             lastmod = requests.head(jsonzip_url).headers['Last-Modified']
         except:
-            self.error(u'Date du dump JSON introuvable')
-            self.update_status('error:json-lastmod')
+            self.error(u'Date du dump .json.zip introuvable')
+            self.update_status('error:zip-lastmod')
             return
 
-        self.info(u'Date modification JSON zippé: %s' % lastmod)
+        self.info(u'Date modification dump .json.zip: %s' % lastmod)
 
         jsonzip_lmd = dateparser.parse(lastmod)
         if not ignore_lmd:
             if self.job.date_fichier and self.job.date_fichier >= jsonzip_lmd:
-                self.info(u'JSON zippé non modifié')
+                self.info(u'Dump .json.zip non modifié')
                 self.update_status('ok')
                 return
 
-        self.info(u'Téléchargement JSON zippé')
+        self.info(u'Téléchargement .json.zip')
 
         localzip = os.path.join(self.app.config['DATA_DIR'],
                                 os.path.basename(jsonzip_url))
 
-        with open(localzip, 'wb') as out:
-            r = requests.get(jsonzip_url, stream=True)
-            for block in r.iter_content(1024):
-                out.write(block)
+        try:
+            with open(localzip, 'wb') as out:
+                r = requests.get(jsonzip_url, stream=True)
+                for block in r.iter_content(1024):
+                    out.write(block)
+        except:
+            self.error(u'Téléchargement .json.zip')
+            self.update_status('error:zip-download')
+            return
 
-        with ZipFile(localzip, 'r') as z:
-            for f in [f for f in z.namelist() if f.endswith('.json')]:
-                self.info(u'JSON extrait : %s' % f)
-                with z.open(f) as zf:
-                    try:
-                        self.parse_json(f, zf)
-                    except Exception, e:
-                        stack = ''.join(traceback.format_exc())
-                        self.error(u'Erreur: %s\n%s' % (e, stack))
+        try:
+            with ZipFile(localzip, 'r') as z:
+                for f in [f for f in z.namelist() if f.endswith('.json')]:
+                    self.info(u'JSON extrait : %s' % f)
+                    with z.open(f) as zf:
+                        try:
+                            self.parse_json(f, zf)
+                        except Exception, e:
+                            stack = ''.join(traceback.format_exc())
+                            self.error(u'Erreur: %s\n%s' % (e, stack))
+                            self.update_status('error:parse-json')
+                            return
+        except:
+            self.error(u'Ouverture ZIP impossible')
+            self.update_status('error:zip-open')
+            return
 
         self.info(u'Job terminé')
         self.update_status('ok', jsonzip_url, jsonzip_lmd)

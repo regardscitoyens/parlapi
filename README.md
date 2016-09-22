@@ -37,8 +37,7 @@ $ psql -c "create database parlapi with owner parlapi;"
 
 ```bash
 $ parlapi createdb
-$ parlapi update_organes_an
-$ parlapi update_acteurs_an
+$ parlapi update_amo_an
 $ parlapi runserver
 ```
 
