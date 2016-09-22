@@ -37,6 +37,8 @@
 
 
           <p>Les points d'entrée vers les listes d'objets sont décrits ci-dessous.  Les objets JSON renvoyés par l'API comprennent des hyperliens vers d'autres sections de l'API (notamment, les items de liste comportent toujours un lien vers une version plus détaillée).</p>
+
+          <p><i>Note : la taille des pages peut être modifiée (ex: <code>/api/acteurs/?page_size=20</code>)</i></p>
         </article>
         <table class="table table-striped table-responsive">
           <tr>
@@ -47,7 +49,7 @@
             <tr>
               <td>{{ description }}</td>
               <td>
-                <a href="{{ api_prefix }}{{ table }}">{{ api_prefix }}{{ table }}</a>
+                <a href="{{ api_prefix }}{{ table }}"><code>{{ api_prefix }}{{ table }}</code></a>
               </td>
             </tr>
           {% endfor %}
@@ -83,6 +85,10 @@
               </td>
               <td><a href="{{ job.url_fichier }}" target="_blank">fichier</a></td>
               <td>{{ job.date_fichier }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5"><i>Aucun import n'a encore été effectué.</i></td>
             </tr>
           {% endfor %}
         </table>
