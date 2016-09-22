@@ -2,5 +2,4 @@
 
 export PARLAPI_CONFIG=parlapi.config.OpenshiftConfig
 
-parlapi update_organes_an
-parlapi update_acteurs_an
+parlapi update_amo_an

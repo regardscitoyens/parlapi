@@ -8,4 +8,6 @@ pip install -Ue ${OPENSHIFT_REPO_DIR}
 
 export PARLAPI_CONFIG=parlapi.config.OpenshiftConfig
 
+psql -c "DROP DATABASE ${OPENSHIFT_APP_NAME};"
+psql -c "CREATE DATABASE ${OPENSHIFT_APP_NAME} WITH OWNER ${OPENSHIFT_POSTGRESQL_DB_USERNAME};"
 parlapi createdb
