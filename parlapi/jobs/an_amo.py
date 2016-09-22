@@ -83,14 +83,16 @@ class ImportAMOJob(BaseANJob):
             self.save_mandat(acteur, mandat_json)
 
     def save_mandat(self, acteur, json):
-        if not isinstance(json['organes']['organeRef'], basestring):
-            self.warn(u'Mandat %s à organes multiples, ignoré' % json['uid'])
-            return
-
         mandat = self.get_or_create(Mandat, id_an=json['uid'])
 
         mandat.acteur = acteur
-        mandat.organe = self.get_organe(json['organes']['organeRef'])
+
+        if isinstance(json['organes']['organeRef'], basestring):
+            organe_refs = [json['organes']['organeRef']]
+        else:
+            organe_refs = json['organes']['organeRef']
+
+        mandat.organes = [self.get_organe(ref) for ref in organe_refs]
 
         mandat.date_debut = dateparser.parse(json['dateDebut'])
         if json.get('datePublication', None):

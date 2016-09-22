@@ -178,15 +178,16 @@ def setup_api(app):
 
     class MandatListSchema(MandatBaseSchema):
         class Meta(MandatBaseSchema.Meta):
-            fields = MandatBaseSchema.Meta.fields + ('acteur', 'organe',)
-        organe = api.nested(OrganeBaseSchema)
+            fields = MandatBaseSchema.Meta.fields + ('acteur', 'organes')
+
+        organes = api.nestedList(OrganeBaseSchema)
         acteur = api.nested(ActeurBaseSchema)
 
     class MandatActeurSchema(MandatBaseSchema):
         class Meta(MandatBaseSchema.Meta):
-            fields = MandatBaseSchema.Meta.fields + ('organe',)
+            fields = MandatBaseSchema.Meta.fields + ('organes',)
 
-        organe = api.nested(OrganeBaseSchema)
+        organes = api.nestedList(OrganeBaseSchema)
 
     class MandatOrganeSchema(MandatBaseSchema):
         class Meta(MandatBaseSchema.Meta):
@@ -229,7 +230,7 @@ def setup_api(app):
             fields = ()
 
         acteur = api.nested(ActeurBaseSchema)
-        organe = api.nested(OrganeBaseSchema)
+        organes = api.nestedList(OrganeBaseSchema)
 
     # API creation
 
