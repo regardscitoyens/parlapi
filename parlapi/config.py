@@ -24,6 +24,7 @@ class DebugConfig(DefaultConfig):
     Debug-enabled default config
     """
     DEBUG = True
+    SQLALCHEMY_ECHO = True
 
 
 class AutoSecretKeyConfig(DefaultConfig):

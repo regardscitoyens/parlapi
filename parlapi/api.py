@@ -2,6 +2,7 @@
 
 from flask import abort, jsonify, request, url_for
 from flask_marshmallow import Marshmallow
+from sqlalchemy.orm import joinedload
 
 from .models import Regime, Legislature, Organe, Acteur, Mandat
 
@@ -37,14 +38,18 @@ class API(object):
     def endpoint(self, model, detail_schema, **kwargs):
         table = model.__tablename__
 
+        query = kwargs.get('query', lambda: model.query)
+
+        def detail_query(id):
+            return query().filter_by(id=id)
+
         self.endpoints[table] = {
             'model': model,
             'detail_schema': self.add_list_url(detail_schema),
-            'list_schema': self.add_pagination(kwargs.get('list_schema',
-                                                          detail_schema)),
-            'detail_query': kwargs.get(
-                'detail_query', lambda id: model.query.filter_by(id=id)),
-            'list_query': kwargs.get('list_query', lambda: model.query),
+            'list_schema':
+                self.add_pagination(kwargs.get('list_schema', detail_schema)),
+            'detail_query': kwargs.get('detail_query', detail_query),
+            'list_query': kwargs.get('list_query', query),
             'description': kwargs.get('description', table)
         }
 
@@ -238,39 +243,73 @@ def setup_api(app):
 
     # API creation
 
+    def regime_detail_query(id):
+        return Regime.query \
+            .options(joinedload('organes')) \
+            .options(joinedload('legislatures')) \
+            .filter_by(id=id)
+
     api.endpoint(
         Regime,
         RegimeDetailSchema,
         list_schema=RegimeBaseSchema,
-        description=u'Régimes politiques'
+        description=u'Régimes politiques',
+        detail_query=regime_detail_query
     )
+
+    def legislature_detail_query(id):
+        return Legislature.query \
+            .options(joinedload('organes')) \
+            .options(joinedload('regime')) \
+            .filter_by(id=id)
 
     api.endpoint(
         Legislature,
         LegislatureDetailSchema,
         list_schema=LegislatureBaseSchema,
-        description=u'Législatures'
+        description=u'Législatures',
+        detail_query=legislature_detail_query
     )
+
+    def organe_detail_query(id):
+        return Organe.query \
+            .options(joinedload('legislature')) \
+            .options(joinedload('regime')) \
+            .options(joinedload('mandats').joinedload('acteur')) \
+            .filter_by(id=id)
 
     api.endpoint(
         Organe,
         OrganeDetailSchema,
         list_schema=OrganeBaseSchema,
-        description=u'Organes (ministères, commissions, organismes...)'
+        description=u'Organes (ministères, commissions, organismes...)',
+        detail_query=organe_detail_query
     )
+
+    def acteur_detail_query(id):
+        return Acteur.query \
+            .options(joinedload('mandats').joinedload('organes')) \
+            .filter_by(id=id)
 
     api.endpoint(
         Acteur,
         ActeurDetailSchema,
         list_schema=ActeurBaseSchema,
-        description=u'Acteurs (ministres, parlementaires...)'
+        description=u'Acteurs (ministres, parlementaires...)',
+        detail_query=acteur_detail_query
     )
+
+    def mandat_query():
+        return Mandat.query \
+            .options(joinedload('organes')) \
+            .options(joinedload('acteur'))
 
     api.endpoint(
         Mandat,
         MandatDetailSchema,
         list_schema=MandatListSchema,
-        description=u'Mandats'
+        description=u'Mandats',
+        query=mandat_query
     )
 
     return api
