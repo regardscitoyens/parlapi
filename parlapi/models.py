@@ -5,6 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+#
+# Modeles internes
+#
 
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -16,6 +19,9 @@ class Job(db.Model):
     date_fichier = db.Column(db.DateTime)
     resultat = db.Column(db.String)
 
+#
+# AN: acteurs, mandats, organes
+#
 
 class Regime(db.Model):
     __tablename__ = 'regimes'
@@ -23,9 +29,9 @@ class Regime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String)
 
-    organes = db.relationship("Organe", back_populates="regime")
+    organes = db.relationship('Organe', back_populates='regime')
 
-    legislatures = db.relationship("Legislature", back_populates="regime")
+    legislatures = db.relationship('Legislature', back_populates='regime')
 
 
 class Legislature(db.Model):
@@ -37,9 +43,9 @@ class Legislature(db.Model):
     date_fin = db.Column(db.Date)
 
     regime_id = db.Column(db.Integer, db.ForeignKey('regimes.id'))
-    regime = db.relationship("Regime", back_populates="legislatures")
+    regime = db.relationship('Regime', back_populates='legislatures')
 
-    organes = db.relationship("Organe", back_populates="legislature")
+    organes = db.relationship('Organe', back_populates='legislature')
 
 
 assoc_mandats_organes = db.Table(
@@ -62,13 +68,13 @@ class Organe(db.Model):
     date_fin = db.Column(db.Date)
 
     regime_id = db.Column(db.Integer, db.ForeignKey('regimes.id'))
-    regime = db.relationship("Regime", back_populates="organes")
+    regime = db.relationship('Regime', back_populates='organes')
 
     legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
-    legislature = db.relationship("Legislature", back_populates="organes")
+    legislature = db.relationship('Legislature', back_populates='organes')
 
-    mandats = db.relationship("Mandat", secondary=assoc_mandats_organes,
-                              back_populates="organes")
+    mandats = db.relationship('Mandat', secondary=assoc_mandats_organes,
+                              back_populates='organes')
 
 
 class Mandat(db.Model):
@@ -94,11 +100,11 @@ class Mandat(db.Model):
     election_circo = db.Column(db.Integer)
     election_cause = db.Column(db.String)
 
-    organes = db.relationship("Organe", secondary=assoc_mandats_organes,
-                              back_populates="mandats")
+    organes = db.relationship('Organe', secondary=assoc_mandats_organes,
+                              back_populates='mandats')
 
     acteur_id = db.Column(db.Integer, db.ForeignKey('acteurs.id'))
-    acteur = db.relationship("Acteur", back_populates="mandats")
+    acteur = db.relationship('Acteur', back_populates='mandats')
 
 
 class Acteur(db.Model):
@@ -121,4 +127,77 @@ class Acteur(db.Model):
     profession_cat_insee = db.Column(db.String)
     profession_fam_insee = db.Column(db.String)
 
-    mandats = db.relationship("Mandat", back_populates="acteur")
+    mandats = db.relationship('Mandat', back_populates='acteur')
+
+    documents = db.relationship('ActeurDocument', back_populates='acteur')
+
+#
+# AN: documents et dossiers législatifs
+#
+
+
+assoc_documents_themes = db.Table(
+    'documents_themes',
+    db.Column('document_id', db.Integer, db.ForeignKey('documents.id')),
+    db.Column('theme_id', db.Integer, db.ForeignKey('themes.id'))
+)
+
+
+class Theme(db.Model):
+    __tablename__ = 'themes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    theme = db.Column(db.String)
+
+    documents = db.relationship('Document', secondary=assoc_documents_themes,
+                                back_populates='themes')
+
+
+class ActeurDocument(db.Model):
+    __tablename__ = 'acteurs_documents'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    qualite = db.Column(db.String)
+    relation = db.Column(db.String)
+
+    date_cosignature = db.Column(db.Date)
+    date_retrait_cosignature = db.Column(db.Date)
+
+    acteur_id = db.Column(db.Integer, db.ForeignKey('acteurs.id'))
+    acteur = db.relationship('Acteur', back_populates='documents')
+
+    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    document = db.relationship('Document', back_populates='acteurs')
+
+
+class Document(db.Model):
+    __tablename__ = 'documents'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_an = db.Column(db.String)
+
+    date_creation = db.Column(db.Date)
+    date_depot = db.Column(db.Date)
+    date_publication = db.Column(db.Date)
+    date_publication_web = db.Column(db.Date)
+
+    titre = db.Column(db.String)
+    denomination_structurelle = db.Column(db.String)
+    type_code = db.Column(db.String)
+    type_libelle = db.Column(db.String)
+    soustype_code = db.Column(db.String)
+    soustype_libelle = db.Column(db.String)
+    statut_adoption = db.Column(db.String)
+
+    legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
+    legislature = db.relationship('Legislature')
+
+    themes = db.relationship('Theme', secondary=assoc_documents_themes,
+                             back_populates='documents')
+
+    acteurs = db.relationship('ActeurDocument', back_populates='document')
+
+    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    divisions = db.relationship('Document', backref=db.backref('document',
+                                remote_side=[id]))
