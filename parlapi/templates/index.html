@@ -26,7 +26,7 @@
       </article>
     </header>
     <div class="col-md-6">
-      <article class="alert alert-danger"><b>Attention :</b> cette API est encore incomplête et son format n'est pas définitif.</article>
+      <article class="alert alert-danger"><b>Attention :</b> ces API sont encore incomplêtes et leur format n'est pas définitif.</article>
 
       <section class="panel panel-default">
         <header class="panel-heading">
@@ -55,7 +55,27 @@
           {% endfor %}
         </table>
       </section>
+
+      <section class="panel panel-default">
+        <header class="panel-heading">
+          <b>API GraphQL</b>
+        </header>
+        <article class="panel-body">
+          <p>Cette API donne accès au schéma de données via des requêtes GraphQL.</p>
+        </article>
+        <table class="table table-striped table-responsive">
+          <tr>
+            <th>Description</th>
+            <th>Point d'entrée API</th>
+          </tr>
+          <tr>
+            <td>Point d'entrée GraphQL</td>
+            <td><a href="{{ graphql_prefix }}"><code>{{ graphql_prefix }}</code></a></td>
+          </tr>
+        </table>
+      </section>
     </div>
+
     <div class="col-md-6">
       <section class="panel panel-default">
         <header class="panel-heading">

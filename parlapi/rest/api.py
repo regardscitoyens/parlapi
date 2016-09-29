@@ -124,7 +124,7 @@ class API(object):
         result = schema().dump(item)
         return jsonify(result.data)
 
-    def setup_routes(self, app, prefix='/api/'):
+    def setup_routes(self, app, prefix='/rest/'):
         if not prefix.endswith('/'):
             prefix = '%s/' % prefix
 
