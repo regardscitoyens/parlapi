@@ -38,18 +38,18 @@
 
           <p>Les points d'entrée vers les listes d'objets sont décrits ci-dessous.  Les objets JSON renvoyés par l'API comprennent des hyperliens vers d'autres sections de l'API (notamment, les items de liste comportent toujours un lien vers une version plus détaillée).</p>
 
-          <p><i>Note : la taille des pages peut être modifiée (ex: <code>/api/acteurs/?page_size=20</code>)</i></p>
+          <p><i>Note : la taille des pages peut être modifiée (ex: <code>{{ rest_prefix }}acteurs/?page_size=20</code>)</i></p>
         </article>
         <table class="table table-striped table-responsive">
           <tr>
             <th>Description</th>
             <th>Point d'entrée API</th>
           </tr>
-          {% for table, description in api.items() %}
+          {% for table, description in rest_api.items() %}
             <tr>
               <td>{{ description }}</td>
               <td>
-                <a href="{{ api_prefix }}{{ table }}"><code>{{ api_prefix }}{{ table }}</code></a>
+                <a href="{{ rest_prefix }}{{ table }}"><code>{{ rest_prefix }}{{ table }}</code></a>
               </td>
             </tr>
           {% endfor %}
