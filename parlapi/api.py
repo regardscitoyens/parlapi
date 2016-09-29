@@ -1,10 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import collections
+
 from flask import abort, jsonify, request, url_for
 from flask_marshmallow import Marshmallow
 from sqlalchemy.orm import joinedload
 
-from .models import Regime, Legislature, Organe, Acteur, Mandat
+
+from .models import (
+    Acte,
+    Acteur,
+    Document,
+    Dossier,
+    Legislature,
+    Mandat,
+    Organe,
+    Regime,
+    Theme
+)
 
 
 class PaginationResult(object):
@@ -33,7 +46,8 @@ class API(object):
 
     @property
     def descriptions(self):
-        return {k: v['description'] for k, v in self.endpoints.items()}
+        descs = {k: v['description'] for k, v in self.endpoints.items()}
+        return collections.OrderedDict(sorted(descs.items()))
 
     def endpoint(self, model, detail_schema, **kwargs):
         table = model.__tablename__
@@ -183,6 +197,34 @@ def setup_api(app):
 
         _url = api.detailURL('mandats')
 
+    class ThemeBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = Theme
+            fields = ('theme', '_url')
+
+        _url = api.detailURL('themes')
+
+    class DocumentBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = Document
+            fields = ('titre', '_url')
+
+        _url = api.detailURL('documents')
+
+    class DossierBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = Dossier
+            fields = ('titre', 'procedure_libelle', '_url')
+
+        _url = api.detailURL('dossiers')
+
+    class ActeBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = Acte
+            fields = ('libelle', '_url')
+
+        _url = api.detailURL('actes')
+
     # Semi-detailed schemas (for use in some relations)
 
     class MandatListSchema(MandatBaseSchema):
@@ -240,6 +282,24 @@ def setup_api(app):
 
         acteur = api.nested(ActeurBaseSchema)
         organes = api.nestedList(OrganeBaseSchema)
+
+    class ThemeDetailSchema(ThemeBaseSchema):
+        class Meta(ThemeBaseSchema.Meta):
+            fields = ()
+
+        documents = api.nestedList(DocumentBaseSchema)
+
+    class DocumentDetailSchema(DocumentBaseSchema):
+        class Meta(DocumentBaseSchema.Meta):
+            fields = ()
+
+    class DossierDetailSchema(DossierBaseSchema):
+        class Meta(DossierBaseSchema.Meta):
+            fields = ()
+
+    class ActeDetailSchema(ActeBaseSchema):
+        class Meta(ActeBaseSchema.Meta):
+            fields = ()
 
     # API creation
 
@@ -310,6 +370,40 @@ def setup_api(app):
         list_schema=MandatListSchema,
         description=u'Mandats',
         query=mandat_query
+    )
+
+    def theme_detail_query(id):
+        return Theme.query \
+            .options(joinedload('documents')) \
+            .filter_by(id=id)
+
+    api.endpoint(
+        Theme,
+        ThemeDetailSchema,
+        list_schema=ThemeBaseSchema,
+        description=u'Thèmes',
+        detail_query=theme_detail_query
+    )
+
+    api.endpoint(
+        Document,
+        DocumentDetailSchema,
+        list_schema=DocumentBaseSchema,
+        description=u'Documents législatifs'
+    )
+
+    api.endpoint(
+        Dossier,
+        DossierDetailSchema,
+        list_schema=DossierBaseSchema,
+        description=u'Dossiers législatifs',
+    )
+
+    api.endpoint(
+        Acte,
+        ActeDetailSchema,
+        list_schema=ActeBaseSchema,
+        description=u'Actes législatifs',
     )
 
     return api

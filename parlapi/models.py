@@ -208,8 +208,8 @@ class Document(db.Model):
     organes = db.relationship('Organe', secondary=assoc_documents_organes)
 
     document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
-    divisions = db.relationship('Document', backref=db.backref('document',
-                                remote_side=[id]))
+    divisions = db.relationship('Document', backref=db.backref(
+                                'document_parent', remote_side=[id]))
 
     actes_legislatifs = db.relationship('Acte', back_populates='document')
 
@@ -255,5 +255,5 @@ class Acte(db.Model):
     organe = db.relationship('Organe')
 
     acte_id = db.Column(db.Integer, db.ForeignKey('actes.id'))
-    actes = db.relationship('Acte', backref=db.backref('acte',
+    actes = db.relationship('Acte', backref=db.backref('acte_parent',
                                                        remote_side=[id]))
