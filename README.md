@@ -53,3 +53,10 @@ $ rhc app show -a $APP | grep Git
 $ git remote add openshift ssh://xxx@parlapi-xxx.rhcloud.com/~/git/parlapi.git/
 $ git push --force openshift openshift:master
 ```
+
+### Déploiement Apache2/mod_wsgi
+
+Voir le rôle `parlapi` dans le [playbook citoyen][gh-playbook]
+
+
+[gh-playbook]: https://github.com/regardscitoyens/playbook-citoyen

@@ -25,12 +25,26 @@ def createdb():
 
 @cli.command(short_help=u'Met à jour acteurs, mandats, organes depuis l\'AN')
 @click.option('--force', is_flag=True)
-def update_amo_an(force):
+@click.option('--file', default=None)
+def update_amo_an(force, file):
     from .parlapi import app
     from .jobs.an_amo import run
 
     with app.app_context():
-        run(app, force)
+        app.config.update(SQLALCHEMY_ECHO=False)
+        run(app, force, file)
+
+
+@cli.command(short_help=u'Met à jour dossiers, documents, actes depuis l\'AN')
+@click.option('--force', is_flag=True)
+@click.option('--file', default=None)
+def update_dossiers_an(force, file):
+    from .parlapi import app
+    from .jobs.an_dossiers import run
+
+    with app.app_context():
+        app.config.update(SQLALCHEMY_ECHO=False)
+        run(app, force, file)
 
 
 if __name__ == '__main__':

@@ -53,6 +53,7 @@ class ImportAMOJob(BaseANJob):
         return self.cache_legislatures[num]
 
     def save_acteur(self, json):
+        self.current = 'Acteur %s' % json['uid']['#text']
         acteur = self.get_or_create(Acteur, id_an=json['uid']['#text'])
 
         ec = json['etatCivil']
@@ -83,6 +84,7 @@ class ImportAMOJob(BaseANJob):
             self.save_mandat(acteur, mandat_json)
 
     def save_mandat(self, acteur, json):
+        self.current = 'Mandat %s' % json['uid']
         mandat = self.get_or_create(Mandat, id_an=json['uid'])
 
         mandat.acteur = acteur
@@ -126,6 +128,7 @@ class ImportAMOJob(BaseANJob):
                 mandat.election_circo = int(li['numCirco'])
 
     def save_organe(self, json):
+        self.current = 'Organe %s' % json['uid']
         organe = self.get_organe(json['uid'])
 
         organe.type = json['codeType']
@@ -152,8 +155,11 @@ class ImportAMOJob(BaseANJob):
                 organe.legislature.regime = organe.regime
 
 
-def run(app, force):
-    ImportAMOJob(app, u'AN: députés-sénateurs-ministres',
-                 '/acteurs/deputes-senateurs-ministres').run(force)
-    ImportAMOJob(app, u'AN: députés (historique)',
-                 '/acteurs/historique-des-deputes').run(force)
+def run(app, force=False, file=None):
+    if file:
+        ImportAMOJob(app, u'AN: députés (historique)', '').run(force, file)
+    else:
+        ImportAMOJob(app, u'AN: députés-sénateurs-ministres',
+                     '/acteurs/deputes-senateurs-ministres').run(force)
+        ImportAMOJob(app, u'AN: députés (historique)',
+                     '/acteurs/historique-des-deputes').run(force)

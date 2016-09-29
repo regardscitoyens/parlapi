@@ -171,6 +171,13 @@ class ActeurDocument(db.Model):
     document = db.relationship('Document', back_populates='acteurs')
 
 
+assoc_documents_organes = db.Table(
+    'documents_organes',
+    db.Column('document_id', db.Integer, db.ForeignKey('documents.id')),
+    db.Column('organe_id', db.Integer, db.ForeignKey('organes.id'))
+)
+
+
 class Document(db.Model):
     __tablename__ = 'documents'
 
@@ -198,6 +205,55 @@ class Document(db.Model):
 
     acteurs = db.relationship('ActeurDocument', back_populates='document')
 
+    organes = db.relationship('Organe', secondary=assoc_documents_organes)
+
     document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
     divisions = db.relationship('Document', backref=db.backref('document',
                                 remote_side=[id]))
+
+    actes_legislatifs = db.relationship('Acte', back_populates='document')
+
+
+class Dossier(db.Model):
+    __tablename__ = 'dossiers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_an = db.Column(db.String)
+
+    titre = db.Column(db.String)
+    titre_chemin = db.Column(db.String)
+    senat_chemin = db.Column(db.String)
+
+    procedure_code = db.Column(db.Integer)
+    procedure_libelle = db.Column(db.String)
+
+    legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
+    legislature = db.relationship('Legislature')
+
+    # TODO initiateurs (acteurs + organes)
+
+    actes_legislatifs = db.relationship('Acte', back_populates='dossier')
+
+
+class Acte(db.Model):
+    __tablename__ = 'actes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_an = db.Column(db.String)
+
+    code = db.Column(db.String)
+    libelle = db.Column(db.String)
+    date = db.Column(db.Date)
+
+    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    document = db.relationship('Document', back_populates='actes_legislatifs')
+
+    dossier_id = db.Column(db.Integer, db.ForeignKey('dossiers.id'))
+    dossier = db.relationship('Dossier', back_populates='actes_legislatifs')
+
+    organe_id = db.Column(db.Integer, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe')
+
+    acte_id = db.Column(db.Integer, db.ForeignKey('actes.id'))
+    actes = db.relationship('Acte', backref=db.backref('acte',
+                                                       remote_side=[id]))

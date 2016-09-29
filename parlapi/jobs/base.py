@@ -26,6 +26,7 @@ class BaseJob(object):
     def __init__(self, app):
         self.app = app
         self._job = None
+        self.current = None
 
     def debug(self, msg):
         self.app.logger.debug('<%s> %s' % (self.job_name, msg))
@@ -70,7 +71,30 @@ class BaseANJob(BaseJob):
     def parse_json(self, json_filename, json_stream):
         raise NotImplementedError()
 
-    def run(self, ignore_lmd=False):
+    def handle_json(self, filename, filestream):
+        try:
+            self.current = None
+            self.parse_json(filename, filestream)
+            return True
+        except Exception, e:
+            if self.current:
+                msg = 'Erreur (%s)' % self.current
+            else:
+                msg = 'Erreur'
+            stack = ''.join(traceback.format_exc())
+            self.error(u'%s: %s\n%s' % (msg, e, stack))
+            self.update_status('error:parse-json')
+            return False
+
+    def run(self, ignore_lmd=False, file=None):
+        if file:
+            self.info(u'Exécution avec fichier %s' % file)
+            with open(file) as f:
+                if not self.handle_json(os.path.basename(file), f):
+                    return
+            self.info(u'Job terminé')
+            return
+
         self.info(u'Téléchargement %s' % self.url)
 
         try:
@@ -132,13 +156,9 @@ class BaseANJob(BaseJob):
                 for f in [f for f in z.namelist() if f.endswith('.json')]:
                     self.info(u'JSON extrait : %s' % f)
                     with z.open(f) as zf:
-                        try:
-                            self.parse_json(f, zf)
-                        except Exception, e:
-                            stack = ''.join(traceback.format_exc())
-                            self.error(u'Erreur: %s\n%s' % (e, stack))
-                            self.update_status('error:parse-json')
+                        if not self.handle_json(f, zf):
                             return
+
         except:
             self.error(u'Ouverture ZIP impossible')
             self.update_status('error:zip-open')
