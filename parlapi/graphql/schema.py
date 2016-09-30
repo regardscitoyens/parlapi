@@ -9,6 +9,7 @@ from ..models import (
     Acteur as ActeurModel,
     Document as DocumentModel,
     Dossier as DossierModel,
+    Job as JobModel,
     Legislature as LegislatureModel,
     Mandat as MandatModel,
     Organe as OrganeModel,
@@ -38,6 +39,12 @@ class Document(SQLAlchemyObjectType):
 class Dossier(SQLAlchemyObjectType):
     class Meta:
         model = DossierModel
+        interfaces = (relay.Node,)
+
+
+class Job(SQLAlchemyObjectType):
+    class Meta:
+        model = JobModel
         interfaces = (relay.Node,)
 
 
@@ -77,6 +84,7 @@ class Query(graphene.ObjectType):
     all_acteurs = SQLAlchemyConnectionField(Acteur)
     all_documents = SQLAlchemyConnectionField(Document)
     all_dossiers = SQLAlchemyConnectionField(Dossier)
+    all_jobs = SQLAlchemyConnectionField(Job)
     all_legislatures = SQLAlchemyConnectionField(Legislature)
     all_mandats = SQLAlchemyConnectionField(Mandat)
     all_organes = SQLAlchemyConnectionField(Organe)
@@ -91,6 +99,7 @@ schema = graphene.Schema(
         Acteur,
         Document,
         Dossier,
+        Job,
         Legislature,
         Mandat,
         Organe,

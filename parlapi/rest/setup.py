@@ -7,8 +7,10 @@ from .api import API
 from ..models import (
     Acte,
     Acteur,
+    ActeurDocument,
     Document,
     Dossier,
+    Job,
     Legislature,
     Mandat,
     Organe,
@@ -22,6 +24,11 @@ def setup_api(app):
     api = API(ma, app)
 
     # Base schemas (for use in lists & some relations)
+
+    class JobSchema(ma.ModelSchema):
+        class Meta:
+            model = Job
+            fields = ()
 
     class RegimeBaseSchema(ma.ModelSchema):
         class Meta:
@@ -65,6 +72,12 @@ def setup_api(app):
 
         _url = api.detailURL('themes')
 
+    class ActeurDocumentBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = ActeurDocument
+            fields = ('date_cosignature', 'date_retrait_cosignature',
+                      'qualite', 'relation')
+
     class DocumentBaseSchema(ma.ModelSchema):
         class Meta:
             model = Document
@@ -104,6 +117,12 @@ def setup_api(app):
     class MandatOrganeSchema(MandatBaseSchema):
         class Meta(MandatBaseSchema.Meta):
             fields = MandatBaseSchema.Meta.fields + ('acteur',)
+
+        acteur = api.nested(ActeurBaseSchema)
+
+    class ActeurDocumentDocumentSchema(ActeurDocumentBaseSchema):
+        class Meta(ActeurDocumentBaseSchema.Meta):
+            fields = ActeurDocumentBaseSchema.Meta.fields + ('acteur',)
 
         acteur = api.nested(ActeurBaseSchema)
 
@@ -154,15 +173,36 @@ def setup_api(app):
         class Meta(DocumentBaseSchema.Meta):
             fields = ()
 
+        actes_legislatifs = api.nestedList(ActeBaseSchema)
+        acteurs = api.nestedList(ActeurDocumentDocumentSchema)
+        document_parent = api.nested(DocumentBaseSchema)
+        divisions = api.nestedList(DocumentBaseSchema)
+        legislature = api.nested(LegislatureBaseSchema)
+        organes = api.nestedList(OrganeBaseSchema)
+        themes = api.nestedList(ThemeBaseSchema)
+
     class DossierDetailSchema(DossierBaseSchema):
         class Meta(DossierBaseSchema.Meta):
             fields = ()
+
+        actes_legislatifs = api.nestedList(ActeBaseSchema)
+        legislature = api.nested(LegislatureBaseSchema)
 
     class ActeDetailSchema(ActeBaseSchema):
         class Meta(ActeBaseSchema.Meta):
             fields = ()
 
+        acte_parent = api.nested(ActeBaseSchema)
+        actes = api.nestedList(ActeBaseSchema)
+        organe = api.nested(OrganeBaseSchema)
+
     # API creation
+
+    api.endpoint(
+        Job,
+        JobSchema,
+        description=u'Jobs d\'import de données'
+    )
 
     def regime_detail_query(id):
         return Regime.query \
@@ -246,25 +286,52 @@ def setup_api(app):
         detail_query=theme_detail_query
     )
 
+    def document_detail_query(id):
+        return Document.query \
+            .options(joinedload('actes_legislatifs')) \
+            .options(joinedload('acteurs').joinedload('acteur')) \
+            .options(joinedload('document_parent')) \
+            .options(joinedload('divisions')) \
+            .options(joinedload('legislature')) \
+            .options(joinedload('organes')) \
+            .options(joinedload('themes')) \
+            .filter_by(id=id)
+
     api.endpoint(
         Document,
         DocumentDetailSchema,
         list_schema=DocumentBaseSchema,
-        description=u'Documents législatifs'
+        description=u'Documents législatifs',
+        detail_query=document_detail_query
     )
+
+    def dossier_detail_query(id):
+        return Dossier.query \
+            .options(joinedload('actes_legislatifs')) \
+            .options(joinedload('legislature')) \
+            .filter_by(id=id)
 
     api.endpoint(
         Dossier,
         DossierDetailSchema,
         list_schema=DossierBaseSchema,
         description=u'Dossiers législatifs',
+        detail_query=dossier_detail_query
     )
+
+    def acte_detail_query(id):
+        return Acte.query \
+            .options(joinedload('acte_parent')) \
+            .options(joinedload('actes')) \
+            .options(joinedload('organe')) \
+            .filter_by(id=id)
 
     api.endpoint(
         Acte,
         ActeDetailSchema,
         list_schema=ActeBaseSchema,
         description=u'Actes législatifs',
+        detail_query=acte_detail_query
     )
 
     return api
