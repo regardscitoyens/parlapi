@@ -68,7 +68,7 @@ class ImportDossiersJob(BaseANJob):
         document = 'export.textesLegislatifs.document.item'
         dossier = 'export.dossiersLegislatifs.dossier.item'
 
-        for prefix, obj in ijson_items(stream, [dossier]):
+        for prefix, obj in ijson_items(stream, [document, dossier]):
             if prefix == document:
                 self.save_document(obj)
             if prefix == dossier:
