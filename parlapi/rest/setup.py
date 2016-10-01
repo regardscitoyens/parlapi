@@ -88,7 +88,7 @@ def setup_api(app):
     class DocumentBaseSchema(ma.ModelSchema):
         class Meta:
             model = Document
-            fields = ('titre', '_url')
+            fields = ('denomination_structurelle', 'titre', '_url')
 
         _url = api.detailURL('documents')
 
@@ -189,6 +189,7 @@ def setup_api(app):
         actes_legislatifs = api.nestedList(ActeBaseSchema)
         acteurs = api.nestedList(ActeurDocumentDocumentSchema)
         document_parent = api.nested(DocumentBaseSchema)
+        dossier = api.nested(DossierBaseSchema)
         divisions = api.nestedList(DocumentBaseSchema)
         legislature = api.nested(LegislatureBaseSchema)
         organes = api.nestedList(OrganeDocumentDocumentSchema)
@@ -199,6 +200,7 @@ def setup_api(app):
             fields = ()
 
         actes_legislatifs = api.nestedList(ActeBaseSchema)
+        documents = api.nestedList(DocumentBaseSchema)
         legislature = api.nested(LegislatureBaseSchema)
 
     class ActeDetailSchema(ActeBaseSchema):
@@ -304,6 +306,7 @@ def setup_api(app):
             .options(joinedload('actes_legislatifs')) \
             .options(joinedload('acteurs').joinedload('acteur')) \
             .options(joinedload('document_parent')) \
+            .options(joinedload('dossier')) \
             .options(joinedload('divisions')) \
             .options(joinedload('legislature')) \
             .options(joinedload('organes').joinedload('organe')) \
@@ -321,6 +324,7 @@ def setup_api(app):
     def dossier_detail_query(id):
         return Dossier.query \
             .options(joinedload('actes_legislatifs')) \
+            .options(joinedload('documents')) \
             .options(joinedload('legislature')) \
             .filter_by(id=id)
 

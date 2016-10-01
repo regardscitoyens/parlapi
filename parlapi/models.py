@@ -220,6 +220,9 @@ class Document(db.Model):
 
     actes_legislatifs = db.relationship('Acte', back_populates='document')
 
+    dossier_id = db.Column(db.String, db.ForeignKey('dossiers.id'))
+    dossier = db.relationship('Dossier', back_populates='documents')
+
 
 class Dossier(db.Model):
     __tablename__ = 'dossiers'
@@ -239,6 +242,8 @@ class Dossier(db.Model):
     # TODO initiateurs (acteurs + organes)
 
     actes_legislatifs = db.relationship('Acte', back_populates='dossier')
+
+    documents = db.relationship('Document', back_populates='dossier')
 
 
 class Acte(db.Model):
