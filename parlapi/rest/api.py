@@ -115,9 +115,8 @@ class API(object):
     def get_detail_or_404(self, table, id):
         schema, get_query = self.get_endpoint_or_404(table, True)
 
-        item = get_query(id).one()
         try:
-            pass
+            item = get_query(id).one()
         except:
             abort(404)
 
