@@ -209,6 +209,8 @@ def setup_api(app):
 
         acte_parent = api.nested(ActeBaseSchema)
         actes = api.nestedList(ActeBaseSchema)
+        document = api.nested(DocumentBaseSchema)
+        dossier = api.nested(DossierBaseSchema)
         organe = api.nested(OrganeBaseSchema)
 
     # API creation
