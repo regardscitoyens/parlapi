@@ -31,12 +31,12 @@ class ImportAMOJob(BaseANJob):
             elif prefix == organe:
                 self.save_organe(obj)
 
-    def get_organe(self, id_an):
-        if id_an not in self.cache_organes:
-            self.cache_organes[id_an] = self.get_or_create(
-                Organe, id_an=id_an)
+    def get_organe(self, id):
+        if id not in self.cache_organes:
+            self.cache_organes[id] = self.get_or_create(
+                Organe, id=id)
 
-        return self.cache_organes[id_an]
+        return self.cache_organes[id]
 
     def get_regime(self, nom):
         if nom not in self.cache_regimes:
@@ -48,13 +48,13 @@ class ImportAMOJob(BaseANJob):
     def get_legislature(self, num):
         if num not in self.cache_legislatures:
             self.cache_legislatures[num] = self.get_or_create(
-                Legislature, numero=int(num))
+                Legislature, id=int(num))
 
         return self.cache_legislatures[num]
 
     def save_acteur(self, json):
         self.current = 'Acteur %s' % json['uid']['#text']
-        acteur = self.get_or_create(Acteur, id_an=json['uid']['#text'])
+        acteur = self.get_or_create(Acteur, id=json['uid']['#text'])
 
         ec = json['etatCivil']
         id = ec['ident']
@@ -85,7 +85,7 @@ class ImportAMOJob(BaseANJob):
 
     def save_mandat(self, acteur, json):
         self.current = 'Mandat %s' % json['uid']
-        mandat = self.get_or_create(Mandat, id_an=json['uid'])
+        mandat = self.get_or_create(Mandat, id=json['uid'])
 
         mandat.acteur = acteur
 

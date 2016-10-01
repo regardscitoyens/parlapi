@@ -38,7 +38,6 @@ class Legislature(db.Model):
     __tablename__ = 'legislatures'
 
     id = db.Column(db.Integer, primary_key=True)
-    numero = db.Column(db.Integer)
     date_debut = db.Column(db.Date)
     date_fin = db.Column(db.Date)
 
@@ -50,16 +49,15 @@ class Legislature(db.Model):
 
 assoc_mandats_organes = db.Table(
     'mandats_organes',
-    db.Column('mandat_id', db.Integer, db.ForeignKey('mandats.id')),
-    db.Column('organe_id', db.Integer, db.ForeignKey('organes.id'))
+    db.Column('mandat_id', db.String, db.ForeignKey('mandats.id')),
+    db.Column('organe_id', db.String, db.ForeignKey('organes.id'))
 )
 
 
 class Organe(db.Model):
     __tablename__ = 'organes'
 
-    id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id = db.Column(db.String, primary_key=True)
     type = db.Column(db.String)
     libelle = db.Column(db.String)
     libelle_court = db.Column(db.String)
@@ -76,12 +74,13 @@ class Organe(db.Model):
     mandats = db.relationship('Mandat', secondary=assoc_mandats_organes,
                               back_populates='organes')
 
+    documents = db.relationship('OrganeDocument', back_populates='organe')
+
 
 class Mandat(db.Model):
     __tablename__ = 'mandats'
 
-    id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id = db.Column(db.String, primary_key=True)
 
     date_debut = db.Column(db.Date)
     date_publication = db.Column(db.Date)
@@ -103,15 +102,14 @@ class Mandat(db.Model):
     organes = db.relationship('Organe', secondary=assoc_mandats_organes,
                               back_populates='mandats')
 
-    acteur_id = db.Column(db.Integer, db.ForeignKey('acteurs.id'))
+    acteur_id = db.Column(db.String, db.ForeignKey('acteurs.id'))
     acteur = db.relationship('Acteur', back_populates='mandats')
 
 
 class Acteur(db.Model):
     __tablename__ = 'acteurs'
 
-    id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id = db.Column(db.String, primary_key=True)
 
     civilite = db.Column(db.String)
     nom = db.Column(db.String)
@@ -138,7 +136,7 @@ class Acteur(db.Model):
 
 assoc_documents_themes = db.Table(
     'documents_themes',
-    db.Column('document_id', db.Integer, db.ForeignKey('documents.id')),
+    db.Column('document_id', db.String, db.ForeignKey('documents.id')),
     db.Column('theme_id', db.Integer, db.ForeignKey('themes.id'))
 )
 
@@ -164,25 +162,34 @@ class ActeurDocument(db.Model):
     date_cosignature = db.Column(db.Date)
     date_retrait_cosignature = db.Column(db.Date)
 
-    acteur_id = db.Column(db.Integer, db.ForeignKey('acteurs.id'))
+    acteur_id = db.Column(db.String, db.ForeignKey('acteurs.id'))
     acteur = db.relationship('Acteur', back_populates='documents')
 
-    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='acteurs')
 
 
-assoc_documents_organes = db.Table(
-    'documents_organes',
-    db.Column('document_id', db.Integer, db.ForeignKey('documents.id')),
-    db.Column('organe_id', db.Integer, db.ForeignKey('organes.id'))
-)
+class OrganeDocument(db.Model):
+    __tablename__ = 'organes_documents'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    relation = db.Column(db.String)
+
+    date_cosignature = db.Column(db.Date)
+    date_retrait_cosignature = db.Column(db.Date)
+
+    organe_id = db.Column(db.String, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe', back_populates='documents')
+
+    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
+    document = db.relationship('Document', back_populates='organes')
 
 
 class Document(db.Model):
     __tablename__ = 'documents'
 
-    id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id = db.Column(db.String, primary_key=True)
 
     date_creation = db.Column(db.Date)
     date_depot = db.Column(db.Date)
@@ -205,9 +212,9 @@ class Document(db.Model):
 
     acteurs = db.relationship('ActeurDocument', back_populates='document')
 
-    organes = db.relationship('Organe', secondary=assoc_documents_organes)
+    organes = db.relationship('OrganeDocument', back_populates='document')
 
-    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
     divisions = db.relationship('Document', backref=db.backref(
                                 'document_parent', remote_side=[id]))
 
@@ -217,8 +224,7 @@ class Document(db.Model):
 class Dossier(db.Model):
     __tablename__ = 'dossiers'
 
-    id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id = db.Column(db.String, primary_key=True)
 
     titre = db.Column(db.String)
     titre_chemin = db.Column(db.String)
@@ -238,22 +244,21 @@ class Dossier(db.Model):
 class Acte(db.Model):
     __tablename__ = 'actes'
 
-    id = db.Column(db.Integer, primary_key=True)
-    id_an = db.Column(db.String)
+    id = db.Column(db.String, primary_key=True)
 
     code = db.Column(db.String)
     libelle = db.Column(db.String)
     date = db.Column(db.Date)
 
-    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='actes_legislatifs')
 
-    dossier_id = db.Column(db.Integer, db.ForeignKey('dossiers.id'))
+    dossier_id = db.Column(db.String, db.ForeignKey('dossiers.id'))
     dossier = db.relationship('Dossier', back_populates='actes_legislatifs')
 
-    organe_id = db.Column(db.Integer, db.ForeignKey('organes.id'))
+    organe_id = db.Column(db.String, db.ForeignKey('organes.id'))
     organe = db.relationship('Organe')
 
-    acte_id = db.Column(db.Integer, db.ForeignKey('actes.id'))
+    acte_id = db.Column(db.String, db.ForeignKey('actes.id'))
     actes = db.relationship('Acte', backref=db.backref('acte_parent',
                                                        remote_side=[id]))

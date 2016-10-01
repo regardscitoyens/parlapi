@@ -14,6 +14,7 @@ from ..models import (
     Legislature,
     Mandat,
     Organe,
+    OrganeDocument,
     Regime,
     Theme
 )
@@ -40,7 +41,7 @@ def setup_api(app):
     class LegislatureBaseSchema(ma.ModelSchema):
         class Meta:
             model = Legislature
-            fields = ('numero', '_url')
+            fields = ('id', '_url')
 
         _url = api.detailURL('legislatures')
 
@@ -77,6 +78,12 @@ def setup_api(app):
             model = ActeurDocument
             fields = ('date_cosignature', 'date_retrait_cosignature',
                       'qualite', 'relation')
+
+    class OrganeDocumentBaseSchema(ma.ModelSchema):
+        class Meta:
+            model = OrganeDocument
+            fields = ('date_cosignature', 'date_retrait_cosignature',
+                      'relation')
 
     class DocumentBaseSchema(ma.ModelSchema):
         class Meta:
@@ -125,6 +132,12 @@ def setup_api(app):
             fields = ActeurDocumentBaseSchema.Meta.fields + ('acteur',)
 
         acteur = api.nested(ActeurBaseSchema)
+
+    class OrganeDocumentDocumentSchema(OrganeDocumentBaseSchema):
+        class Meta(OrganeDocumentBaseSchema.Meta):
+            fields = OrganeDocumentBaseSchema.Meta.fields + ('organe',)
+
+        organe = api.nested(OrganeBaseSchema)
 
     # Detailed schemas
 
@@ -178,7 +191,7 @@ def setup_api(app):
         document_parent = api.nested(DocumentBaseSchema)
         divisions = api.nestedList(DocumentBaseSchema)
         legislature = api.nested(LegislatureBaseSchema)
-        organes = api.nestedList(OrganeBaseSchema)
+        organes = api.nestedList(OrganeDocumentDocumentSchema)
         themes = api.nestedList(ThemeBaseSchema)
 
     class DossierDetailSchema(DossierBaseSchema):
@@ -293,7 +306,7 @@ def setup_api(app):
             .options(joinedload('document_parent')) \
             .options(joinedload('divisions')) \
             .options(joinedload('legislature')) \
-            .options(joinedload('organes')) \
+            .options(joinedload('organes').joinedload('organe')) \
             .options(joinedload('themes')) \
             .filter_by(id=id)
 

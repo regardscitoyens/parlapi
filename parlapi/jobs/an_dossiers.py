@@ -5,7 +5,7 @@ import dateparser
 from .base import BaseANJob
 from .utils import ijson_items
 from ..models import (Organe, Legislature, Acteur, Document, Theme,
-                      ActeurDocument, Dossier, Acte)
+                      ActeurDocument, OrganeDocument, Dossier, Acte)
 
 
 class ImportDossiersJob(BaseANJob):
@@ -27,7 +27,7 @@ class ImportDossiersJob(BaseANJob):
     def get_legislature(self, num):
         if num not in self.cache_legislatures:
             self.cache_legislatures[num] = self.get_or_create(
-                Legislature, numero=int(num))
+                Legislature, id=int(num))
 
         return self.cache_legislatures[num]
 
@@ -37,32 +37,32 @@ class ImportDossiersJob(BaseANJob):
 
         return self.cache_themes[theme]
 
-    def get_acteur(self, id_an):
-        if id_an not in self.cache_acteurs:
-            self.cache_acteurs[id_an] = self.get_or_create(Acteur, id_an=id_an)
+    def get_acteur(self, id):
+        if id not in self.cache_acteurs:
+            self.cache_acteurs[id] = self.get_or_create(Acteur, id=id)
 
-        return self.cache_acteurs[id_an]
+        return self.cache_acteurs[id]
 
-    def get_organe(self, id_an):
-        if id_an not in self.cache_organes:
-            self.cache_organes[id_an] = self.get_or_create(
-                Organe, id_an=id_an)
+    def get_organe(self, id):
+        if id not in self.cache_organes:
+            self.cache_organes[id] = self.get_or_create(
+                Organe, id=id)
 
-        return self.cache_organes[id_an]
+        return self.cache_organes[id]
 
-    def get_dossier(self, id_an):
-        if id_an not in self.cache_dossiers:
-            self.cache_dossiers[id_an] = self.get_or_create(
-                Dossier, id_an=id_an)
+    def get_dossier(self, id):
+        if id not in self.cache_dossiers:
+            self.cache_dossiers[id] = self.get_or_create(
+                Dossier, id=id)
 
-        return self.cache_dossiers[id_an]
+        return self.cache_dossiers[id]
 
-    def get_document(self, id_an):
-        if id_an not in self.cache_documents:
-            self.cache_documents[id_an] = self.get_or_create(
-                Document, id_an=id_an)
+    def get_document(self, id):
+        if id not in self.cache_documents:
+            self.cache_documents[id] = self.get_or_create(
+                Document, id=id)
 
-        return self.cache_documents[id_an]
+        return self.cache_documents[id]
 
     def parse_json(self, filename, stream):
         document = 'export.textesLegislatifs.document.item'
@@ -128,7 +128,11 @@ class ImportDossiersJob(BaseANJob):
                 ad.acteur = self.get_acteur(auteur['acteur']['acteurRef'])
                 acteurs.append(ad)
             elif 'organe' in auteur:
-                organes.append(self.get_organe(auteur['organe']['organeRef']))
+                od = OrganeDocument(relation='auteur')
+                od.organe = self.get_organe(auteur['organe']['organeRef'])
+                organes.append(od)
+            else:
+                self.warn(u'Ignoré type auteur inconnu dans %s' % self.current)
 
         if json.get('coSignataires', None):
             cosign = json['coSignataires']['coSignataire']
@@ -136,21 +140,24 @@ class ImportDossiersJob(BaseANJob):
                 cosign = [cosign]
 
             for auteur in cosign:
-                if 'acteur' not in auteur:
-                    self.warn(
-                        u'Ignoré organe cosignataire dans %s' % self.current)
-                    continue
-
                 dc = dateparser.parse(auteur['dateCosignature'])
                 if auteur.get('dateRetraitCosignature', None):
                     dr = dateparser.parse(auteur['dateRetraitCosignature'])
                 else:
                     dr = None
-                ad = ActeurDocument(relation='cosignataire',
-                                    date_cosignature=dc,
-                                    date_retrait_cosignature=dr)
-                ad.acteur = self.get_acteur(auteur['acteur']['acteurRef'])
-                acteurs.append(ad)
+
+                if 'acteur' in auteur:
+                    ad = ActeurDocument(relation='cosignataire',
+                                        date_cosignature=dc,
+                                        date_retrait_cosignature=dr)
+                    ad.acteur = self.get_acteur(auteur['acteur']['acteurRef'])
+                    acteurs.append(ad)
+                elif 'organe' in auteur:
+                    od = OrganeDocument(relation='cosignataire',
+                                        date_cosignature=dc,
+                                        date_retrait_cosignature=dr)
+                    od.organe = self.get_organe(auteur['organe']['organeRef'])
+                    organes.append(od)
 
         document.acteurs = acteurs
         document.organes = organes
@@ -200,15 +207,15 @@ class ImportDossiersJob(BaseANJob):
             if isinstance(json_actes, dict):
                 json_actes = [json_actes]
 
-            dossier.actes = [self.save_acte(j) for j in json_actes]
+            dossier.actes_legislatifs = [self.save_acte(j) for j in json_actes]
         else:
-            dossier.actes = []
+            dossier.actes_legislatifs = []
 
         return dossier
 
     def save_acte(self, json):
         self.current = 'Acte %s' % json['uid']
-        acte = self.get_or_create(Acte, id_an=json['uid'])
+        acte = self.get_or_create(Acte, id=json['uid'])
 
         acte.code = json['codeActe']
         acte.libelle = json['libelleActe']['nomCanonique']
