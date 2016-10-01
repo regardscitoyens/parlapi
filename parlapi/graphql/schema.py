@@ -7,12 +7,14 @@ from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from ..models import (
     Acte as ActeModel,
     Acteur as ActeurModel,
+    ActeurDocument as ActeurDocumentModel,
     Document as DocumentModel,
     Dossier as DossierModel,
     Job as JobModel,
     Legislature as LegislatureModel,
     Mandat as MandatModel,
     Organe as OrganeModel,
+    OrganeDocument as OrganeDocumentModel,
     Regime as RegimeModel,
     Theme as ThemeModel,
 )
@@ -27,6 +29,12 @@ class Acte(SQLAlchemyObjectType):
 class Acteur(SQLAlchemyObjectType):
     class Meta:
         model = ActeurModel
+        interfaces = (relay.Node,)
+
+
+class ActeurDocument(SQLAlchemyObjectType):
+    class Meta:
+        model = ActeurDocumentModel
         interfaces = (relay.Node,)
 
 
@@ -66,6 +74,12 @@ class Organe(SQLAlchemyObjectType):
         interfaces = (relay.Node,)
 
 
+class OrganeDocument(SQLAlchemyObjectType):
+    class Meta:
+        model = OrganeDocumentModel
+        interfaces = (relay.Node,)
+
+
 class Regime(SQLAlchemyObjectType):
     class Meta:
         model = RegimeModel
@@ -97,12 +111,14 @@ schema = graphene.Schema(
     types=[
         Acte,
         Acteur,
+        ActeurDocument,
         Document,
         Dossier,
         Job,
         Legislature,
         Mandat,
         Organe,
+        OrganeDocument,
         Regime,
         Theme,
     ]
