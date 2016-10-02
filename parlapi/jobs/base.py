@@ -27,6 +27,7 @@ class BaseJob(object):
         self.app = app
         self._job = None
         self.current = None
+        self._count = 0
 
     def debug(self, msg):
         self.app.logger.debug('<%s> %s' % (self.job_name, msg))
@@ -51,8 +52,14 @@ class BaseJob(object):
     def get_or_create(self, model, **kwargs):
         item = model.query.filter_by(**kwargs).first()
         if not item:
+            if self._count > 0 and self._count % 1000 == 0:
+                self.debug('%d objects created, committing' % self._count)
+                db.session.commit()
+
             item = model(**kwargs)
             db.session.add(item)
+
+            self._count += 1
 
         return item
 
@@ -100,6 +107,7 @@ class BaseANJob(BaseJob):
             with open(file) as f:
                 if not self.handle_json(os.path.basename(file), f):
                     return
+            db.session.commit()
             self.info(u'Job terminé')
             return
 

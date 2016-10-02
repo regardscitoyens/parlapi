@@ -8,6 +8,7 @@ from ..models import (
     Acte as ActeModel,
     Acteur as ActeurModel,
     ActeurDocument as ActeurDocumentModel,
+    Amendement as AmendementModel,
     Document as DocumentModel,
     Dossier as DossierModel,
     Job as JobModel,
@@ -38,6 +39,11 @@ class Acteur(SQLAlchemyObjectType):
 class ActeurDocument(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = ActeurDocumentModel
+
+
+class Amendement(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = AmendementModel
 
 
 class Document(SQLAlchemyObjectType):
@@ -89,6 +95,7 @@ class Query(graphene.ObjectType):
     node = relay.Node.Field()
     all_actes = SQLAlchemyConnectionField(Acte)
     all_acteurs = SQLAlchemyConnectionField(Acteur)
+    all_amendements = SQLAlchemyConnectionField(Amendement)
     all_documents = SQLAlchemyConnectionField(Document)
     all_dossiers = SQLAlchemyConnectionField(Dossier)
     all_jobs = SQLAlchemyConnectionField(Job)
@@ -105,6 +112,7 @@ schema = graphene.Schema(
         Acte,
         Acteur,
         ActeurDocument,
+        Amendement,
         Document,
         Dossier,
         Job,

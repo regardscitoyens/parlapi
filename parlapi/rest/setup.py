@@ -8,6 +8,7 @@ from ..models import (
     Acte,
     Acteur,
     ActeurDocument,
+    Amendement,
     Document,
     Dossier,
     Job,
@@ -109,6 +110,14 @@ def setup_api(app):
 
         _url = api.detailURL('actes')
 
+    class AmendementBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = Amendement
+            fields = ('numero_long', 'etape_texte', 'sort', 'division_texte',
+                      '_url')
+
+        _url = api.detailURL('amendements')
+
     # Semi-detailed schemas (for use in some relations)
 
     class MandatListSchema(MandatBaseSchema):
@@ -141,6 +150,12 @@ def setup_api(app):
             fields = OrganeDocumentBaseSchema.Meta.fields + ('organe',)
 
         organe = api.nested(OrganeBaseSchema)
+
+    class AmendementListSchema(AmendementBaseSchema):
+        class Meta(AmendementBaseSchema.Meta):
+            fields = AmendementBaseSchema.Meta.fields + ('document',)
+
+        document = api.nested(DocumentBaseSchema)
 
     # Detailed schemas
 
@@ -191,6 +206,7 @@ def setup_api(app):
 
         actes_legislatifs = api.nestedList(ActeBaseSchema)
         acteurs = api.nestedList(ActeurDocumentDocumentSchema)
+        amendements = api.nestedList(AmendementBaseSchema)
         document_parent = api.nested(DocumentBaseSchema)
         dossier = api.nested(DossierBaseSchema)
         divisions = api.nestedList(DocumentBaseSchema)
@@ -215,6 +231,16 @@ def setup_api(app):
         document = api.nested(DocumentBaseSchema)
         dossier = api.nested(DossierBaseSchema)
         organe = api.nested(OrganeBaseSchema)
+
+    class AmendementDetailSchema(AmendementBaseSchema):
+        class Meta(AmendementBaseSchema.Meta):
+            fields = ()
+
+        amendement_parent = api.nested(AmendementBaseSchema)
+        document = api.nested(DocumentBaseSchema)
+        legislature = api.nested(LegislatureBaseSchema)
+        organe = api.nested(OrganeBaseSchema)
+        sous_amendements = api.nestedList(AmendementBaseSchema)
 
     # API creation
 
@@ -354,6 +380,23 @@ def setup_api(app):
         list_schema=ActeBaseSchema,
         description=u'Actes législatifs',
         detail_query=acte_detail_query
+    )
+
+    def amendement_detail_query(id):
+        return Amendement.query \
+            .options(joinedload('legislature')) \
+            .options(joinedload('document')) \
+            .options(joinedload('organe')) \
+            .options(joinedload('sous_amendements')) \
+            .options(joinedload('amendement_parent')) \
+            .filter_by(id=id)
+
+    api.endpoint(
+        Amendement,
+        AmendementDetailSchema,
+        list_schema=AmendementListSchema,
+        description=u'Amendements',
+        detail_query=amendement_detail_query
     )
 
     return api
