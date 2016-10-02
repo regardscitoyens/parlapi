@@ -17,6 +17,8 @@ class DefaultConfig(object):
     DATA_DIR = os.path.join(BASE_DIR, 'data')
     API_PAGE_SIZE = 10
     SECRET_KEY = 'no-secret-key'
+    PIWIK_HOST = None
+    PIWIK_ID = None
 
 
 class DebugConfig(DefaultConfig):
@@ -62,6 +64,8 @@ class EnvironmentConfig(AutoSecretKeyConfig):
     - PARLAPI_DB_URL: database connection URL
     - PARLAPI_DATA_DIR: directory for data files
     - PARLAPI_PAGE_SIZE: default API page size
+    - PARLAPI_PIWIK_HOST: piwik hostname
+    - PARLAPI_PIWIK_ID: piwik site ID
     """
     DEBUG = os.environ.get('PARLAPI_DEBUG', 'False') == 'True'
 
@@ -71,6 +75,9 @@ class EnvironmentConfig(AutoSecretKeyConfig):
     DATA_DIR = os.environ.get('PARLAPI_DATA_DIR', DefaultConfig.DATA_DIR)
     API_PAGE_SIZE = int(os.environ.get('PARLAPI_PAGE_SIZE',
                                        DefaultConfig.API_PAGE_SIZE))
+
+    PIWIK_HOST = os.environ.get('PARLAPI_PIWIK_HOST', DefaultConfig.PIWIK_HOST)
+    PIWIK_ID = os.environ.get('PARLAPI_PIWIK_ID', DefaultConfig.PIWIK_ID)
 
 
 class OpenshiftConfig(AutoSecretKeyConfig):
