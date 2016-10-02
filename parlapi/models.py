@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, BaseQuery
+from sqlalchemy_searchable import make_searchable, SearchQueryMixin
+from sqlalchemy_utils.types import TSVectorType
 
 
 db = SQLAlchemy()
+make_searchable(options={'regconfig': 'pg_catalog.french'})
+
+
+class SearchableQuery(BaseQuery, SearchQueryMixin):
+    pass
+
 
 #
 # Modeles internes
@@ -11,13 +19,17 @@ db = SQLAlchemy()
 
 class Job(db.Model):
     __tablename__ = 'jobs'
+    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String)
+    nom = db.Column(db.Unicode)
     date_exec = db.Column(db.DateTime)
-    url_fichier = db.Column(db.String)
+    url_fichier = db.Column(db.Unicode)
     date_fichier = db.Column(db.DateTime)
-    resultat = db.Column(db.String)
+    resultat = db.Column(db.Unicode)
+
+    search_vector = db.Column(TSVectorType('nom', 'url_fichier'))
+
 
 #
 # AN: acteurs, mandats, organes
@@ -25,13 +37,16 @@ class Job(db.Model):
 
 class Regime(db.Model):
     __tablename__ = 'regimes'
+    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String)
+    nom = db.Column(db.Unicode)
 
     organes = db.relationship('Organe', back_populates='regime')
 
     legislatures = db.relationship('Legislature', back_populates='regime')
+
+    search_vector = db.Column(TSVectorType('nom'))
 
 
 class Legislature(db.Model):
@@ -49,19 +64,20 @@ class Legislature(db.Model):
 
 assoc_mandats_organes = db.Table(
     'mandats_organes',
-    db.Column('mandat_id', db.String, db.ForeignKey('mandats.id')),
-    db.Column('organe_id', db.String, db.ForeignKey('organes.id'))
+    db.Column('mandat_id', db.Unicode, db.ForeignKey('mandats.id')),
+    db.Column('organe_id', db.Unicode, db.ForeignKey('organes.id'))
 )
 
 
 class Organe(db.Model):
     __tablename__ = 'organes'
+    query_class = SearchableQuery
 
-    id = db.Column(db.String, primary_key=True)
-    type = db.Column(db.String)
-    libelle = db.Column(db.String)
-    libelle_court = db.Column(db.String)
-    abbreviation = db.Column(db.String)
+    id = db.Column(db.Unicode, primary_key=True)
+    type = db.Column(db.Unicode)
+    libelle = db.Column(db.Unicode)
+    libelle_court = db.Column(db.Unicode)
+    abbreviation = db.Column(db.Unicode)
     date_debut = db.Column(db.Date)
     date_fin = db.Column(db.Date)
 
@@ -76,58 +92,71 @@ class Organe(db.Model):
 
     documents = db.relationship('OrganeDocument', back_populates='organe')
 
+    search_vector = db.Column(TSVectorType('libelle', 'libelle_court', 'type',
+                                           'abbreviation'))
+
 
 class Mandat(db.Model):
     __tablename__ = 'mandats'
+    query_class = SearchableQuery
 
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Unicode, primary_key=True)
 
     date_debut = db.Column(db.Date)
     date_publication = db.Column(db.Date)
     date_fin = db.Column(db.Date)
 
-    libelle = db.Column(db.String)
-    qualite = db.Column(db.String)
+    libelle = db.Column(db.Unicode)
+    qualite = db.Column(db.Unicode)
     preseance = db.Column(db.Integer)
     nomination_principale = db.Column(db.Boolean)
 
-    url_hatvp = db.Column(db.String)
+    url_hatvp = db.Column(db.Unicode)
 
-    election_region = db.Column(db.String)
-    election_dept = db.Column(db.String)
-    election_dept_num = db.Column(db.String)
+    election_region = db.Column(db.Unicode)
+    election_dept = db.Column(db.Unicode)
+    election_dept_num = db.Column(db.Unicode)
     election_circo = db.Column(db.Integer)
-    election_cause = db.Column(db.String)
+    election_cause = db.Column(db.Unicode)
 
     organes = db.relationship('Organe', secondary=assoc_mandats_organes,
                               back_populates='mandats')
 
-    acteur_id = db.Column(db.String, db.ForeignKey('acteurs.id'))
+    acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
     acteur = db.relationship('Acteur', back_populates='mandats')
+
+    search_vector = db.Column(TSVectorType('libelle', 'qualite',
+                                           'election_region', 'election_dept',
+                                           'election_dept_num',
+                                           'election_cause'))
 
 
 class Acteur(db.Model):
     __tablename__ = 'acteurs'
+    query_class = SearchableQuery
 
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Unicode, primary_key=True)
 
-    civilite = db.Column(db.String)
-    nom = db.Column(db.String)
-    prenom = db.Column(db.String)
+    civilite = db.Column(db.Unicode)
+    nom = db.Column(db.Unicode)
+    prenom = db.Column(db.Unicode)
 
     date_naissance = db.Column(db.Date)
-    pays_naissance = db.Column(db.String)
-    dept_naissance = db.Column(db.String)
-    ville_naissance = db.Column(db.String)
+    pays_naissance = db.Column(db.Unicode)
+    dept_naissance = db.Column(db.Unicode)
+    ville_naissance = db.Column(db.Unicode)
     date_deces = db.Column(db.Date)
 
-    profession = db.Column(db.String)
-    profession_cat_insee = db.Column(db.String)
-    profession_fam_insee = db.Column(db.String)
+    profession = db.Column(db.Unicode)
+    profession_cat_insee = db.Column(db.Unicode)
+    profession_fam_insee = db.Column(db.Unicode)
 
     mandats = db.relationship('Mandat', back_populates='acteur')
 
     documents = db.relationship('ActeurDocument', back_populates='acteur')
+
+    search_vector = db.Column(TSVectorType('civilite', 'nom', 'prenom',
+                                           'profession'))
 
 #
 # AN: documents et dossiers législatifs
@@ -136,73 +165,79 @@ class Acteur(db.Model):
 
 assoc_documents_themes = db.Table(
     'documents_themes',
-    db.Column('document_id', db.String, db.ForeignKey('documents.id')),
+    db.Column('document_id', db.Unicode, db.ForeignKey('documents.id')),
     db.Column('theme_id', db.Integer, db.ForeignKey('themes.id'))
 )
 
 
 class Theme(db.Model):
     __tablename__ = 'themes'
+    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
-    theme = db.Column(db.String)
+    theme = db.Column(db.Unicode)
 
     documents = db.relationship('Document', secondary=assoc_documents_themes,
                                 back_populates='themes')
 
+    search_vector = db.Column(TSVectorType('theme'))
+
 
 class ActeurDocument(db.Model):
     __tablename__ = 'acteurs_documents'
+    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
 
-    qualite = db.Column(db.String)
-    relation = db.Column(db.String)
+    qualite = db.Column(db.Unicode)
+    relation = db.Column(db.Unicode)
 
     date_cosignature = db.Column(db.Date)
     date_retrait_cosignature = db.Column(db.Date)
 
-    acteur_id = db.Column(db.String, db.ForeignKey('acteurs.id'))
+    acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
     acteur = db.relationship('Acteur', back_populates='documents')
 
-    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='acteurs')
 
 
 class OrganeDocument(db.Model):
     __tablename__ = 'organes_documents'
+    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
 
-    relation = db.Column(db.String)
+    relation = db.Column(db.Unicode)
 
     date_cosignature = db.Column(db.Date)
     date_retrait_cosignature = db.Column(db.Date)
 
-    organe_id = db.Column(db.String, db.ForeignKey('organes.id'))
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
     organe = db.relationship('Organe', back_populates='documents')
 
-    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='organes')
 
 
 class Document(db.Model):
     __tablename__ = 'documents'
+    query_class = SearchableQuery
 
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Unicode, primary_key=True)
 
     date_creation = db.Column(db.Date)
     date_depot = db.Column(db.Date)
     date_publication = db.Column(db.Date)
     date_publication_web = db.Column(db.Date)
 
-    titre = db.Column(db.String)
-    denomination_structurelle = db.Column(db.String)
-    type_code = db.Column(db.String)
-    type_libelle = db.Column(db.String)
-    soustype_code = db.Column(db.String)
-    soustype_libelle = db.Column(db.String)
-    statut_adoption = db.Column(db.String)
+    titre = db.Column(db.Unicode)
+    denomination_structurelle = db.Column(db.Unicode)
+    type_code = db.Column(db.Unicode)
+    type_libelle = db.Column(db.Unicode)
+    soustype_code = db.Column(db.Unicode)
+    soustype_libelle = db.Column(db.Unicode)
+    statut_adoption = db.Column(db.Unicode)
 
     legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
     legislature = db.relationship('Legislature')
@@ -214,27 +249,34 @@ class Document(db.Model):
 
     organes = db.relationship('OrganeDocument', back_populates='document')
 
-    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
     divisions = db.relationship('Document', backref=db.backref(
                                 'document_parent', remote_side=[id]))
 
     actes_legislatifs = db.relationship('Acte', back_populates='document')
 
-    dossier_id = db.Column(db.String, db.ForeignKey('dossiers.id'))
+    dossier_id = db.Column(db.Unicode, db.ForeignKey('dossiers.id'))
     dossier = db.relationship('Dossier', back_populates='documents')
+
+    search_vector = db.Column(TSVectorType('titre', 'type_code',
+                                           'type_libelle', 'soustype_code',
+                                           'soustype_libelle',
+                                           'statut_adoption',
+                                           'denomination_structurelle'))
 
 
 class Dossier(db.Model):
     __tablename__ = 'dossiers'
+    query_class = SearchableQuery
 
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Unicode, primary_key=True)
 
-    titre = db.Column(db.String)
-    titre_chemin = db.Column(db.String)
-    senat_chemin = db.Column(db.String)
+    titre = db.Column(db.Unicode)
+    titre_chemin = db.Column(db.Unicode)
+    senat_chemin = db.Column(db.Unicode)
 
     procedure_code = db.Column(db.Integer)
-    procedure_libelle = db.Column(db.String)
+    procedure_libelle = db.Column(db.Unicode)
 
     legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
     legislature = db.relationship('Legislature')
@@ -245,25 +287,31 @@ class Dossier(db.Model):
 
     documents = db.relationship('Document', back_populates='dossier')
 
+    search_vector = db.Column(TSVectorType('titre', 'procedure_libelle',
+                                           'senat_chemin', 'titre_chemin'))
+
 
 class Acte(db.Model):
     __tablename__ = 'actes'
+    query_class = SearchableQuery
 
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Unicode, primary_key=True)
 
-    code = db.Column(db.String)
-    libelle = db.Column(db.String)
+    code = db.Column(db.Unicode)
+    libelle = db.Column(db.Unicode)
     date = db.Column(db.Date)
 
-    document_id = db.Column(db.String, db.ForeignKey('documents.id'))
+    document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='actes_legislatifs')
 
-    dossier_id = db.Column(db.String, db.ForeignKey('dossiers.id'))
+    dossier_id = db.Column(db.Unicode, db.ForeignKey('dossiers.id'))
     dossier = db.relationship('Dossier', back_populates='actes_legislatifs')
 
-    organe_id = db.Column(db.String, db.ForeignKey('organes.id'))
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
     organe = db.relationship('Organe')
 
-    acte_id = db.Column(db.String, db.ForeignKey('actes.id'))
+    acte_id = db.Column(db.Unicode, db.ForeignKey('actes.id'))
     actes = db.relationship('Acte', backref=db.backref('acte_parent',
                                                        remote_side=[id]))
+
+    search_vector = db.Column(TSVectorType('code', 'libelle'))

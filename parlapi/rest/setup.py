@@ -24,83 +24,86 @@ def setup_api(app):
     ma = Marshmallow(app)
     api = API(ma, app)
 
+    class ParlapiBaseMeta:
+        exclude = ('search_vector',)
+
     # Base schemas (for use in lists & some relations)
 
     class JobSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Job
             fields = ()
 
     class RegimeBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Regime
             fields = ('nom', '_url')
 
         _url = api.detailURL('regimes')
 
     class LegislatureBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Legislature
             fields = ('id', '_url')
 
         _url = api.detailURL('legislatures')
 
     class OrganeBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Organe
             fields = ('libelle', 'type', '_url')
 
         _url = api.detailURL('organes')
 
     class ActeurBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Acteur
             fields = ('nom', 'prenom', '_url')
 
         _url = api.detailURL('acteurs')
 
     class MandatBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Mandat
             fields = ('qualite', '_url')
 
         _url = api.detailURL('mandats')
 
     class ThemeBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Theme
             fields = ('theme', '_url')
 
         _url = api.detailURL('themes')
 
     class ActeurDocumentBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = ActeurDocument
             fields = ('date_cosignature', 'date_retrait_cosignature',
                       'qualite', 'relation')
 
     class OrganeDocumentBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = OrganeDocument
             fields = ('date_cosignature', 'date_retrait_cosignature',
                       'relation')
 
     class DocumentBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Document
             fields = ('denomination_structurelle', 'titre', '_url')
 
         _url = api.detailURL('documents')
 
     class DossierBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Dossier
             fields = ('titre', 'procedure_libelle', '_url')
 
         _url = api.detailURL('dossiers')
 
     class ActeBaseSchema(ma.ModelSchema):
-        class Meta:
+        class Meta(ParlapiBaseMeta):
             model = Acte
             fields = ('libelle', '_url')
 

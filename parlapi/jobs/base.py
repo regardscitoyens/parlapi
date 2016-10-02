@@ -51,7 +51,7 @@ class BaseJob(object):
     def update_status(self, status=None, file=None, filedate=None):
         job = self.job
         job.date_exec = datetime.now()
-        job.resultat = status or ''
+        job.resultat = status or u''
 
         if file:
             job.url_fichier = file
@@ -83,7 +83,7 @@ class BaseANJob(BaseJob):
                 msg = 'Erreur'
             stack = ''.join(traceback.format_exc())
             self.error(u'%s: %s\n%s' % (msg, e, stack))
-            self.update_status('error:parse-json')
+            self.update_status(u'error:parse-json')
             return False
 
     def run(self, ignore_lmd=False, file=None):
@@ -101,7 +101,7 @@ class BaseANJob(BaseJob):
             soup = BeautifulSoup(requests.get(self.url).content, 'html5lib')
         except:
             self.error(u'Téléchargement %s impossible' % self.url)
-            self.update_status('error:download-html')
+            self.update_status(u'error:download-html')
             return
 
         def match_link(a):
@@ -111,7 +111,7 @@ class BaseANJob(BaseJob):
             link = [a for a in soup.select('a[href]') if match_link(a)][0]
         except:
             self.error(u'Lien vers dump .json.zip introuvable')
-            self.update_status('error:zip-link')
+            self.update_status(u'error:zip-link')
             return
 
         jsonzip_url = link['href']
@@ -124,7 +124,7 @@ class BaseANJob(BaseJob):
             lastmod = requests.head(jsonzip_url).headers['Last-Modified']
         except:
             self.error(u'Date du dump .json.zip introuvable')
-            self.update_status('error:zip-lastmod')
+            self.update_status(u'error:zip-lastmod')
             return
 
         self.info(u'Date modification dump .json.zip: %s' % lastmod)
@@ -133,7 +133,7 @@ class BaseANJob(BaseJob):
         if not ignore_lmd:
             if self.job.date_fichier and self.job.date_fichier >= jsonzip_lmd:
                 self.info(u'Dump .json.zip non modifié')
-                self.update_status('ok')
+                self.update_status(u'ok')
                 return
 
         self.info(u'Téléchargement .json.zip')
@@ -148,7 +148,7 @@ class BaseANJob(BaseJob):
                     out.write(block)
         except:
             self.error(u'Téléchargement .json.zip')
-            self.update_status('error:zip-download')
+            self.update_status(u'error:zip-download')
             return
 
         try:
@@ -161,8 +161,8 @@ class BaseANJob(BaseJob):
 
         except:
             self.error(u'Ouverture ZIP impossible')
-            self.update_status('error:zip-open')
+            self.update_status(u'error:zip-open')
             return
 
         self.info(u'Job terminé')
-        self.update_status('ok', jsonzip_url, jsonzip_lmd)
+        self.update_status(u'ok', jsonzip_url, jsonzip_lmd)

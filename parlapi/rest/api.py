@@ -81,39 +81,49 @@ class API(object):
 
         endpoint = self.endpoints[table]
         prefix = 'detail' if detail else 'list'
-        return endpoint['%s_schema' % prefix], endpoint['%s_query' % prefix]
+        return (endpoint['%s_schema' % prefix], endpoint['%s_query' % prefix],
+                endpoint['model'])
 
     def get_list_or_404(self, table):
-        schema, get_query = self.get_endpoint_or_404(table)
+        schema, get_query, model = self.get_endpoint_or_404(table)
+        args = request.args
 
-        page = int(request.args.get('page') or 1)
-        size = int(request.args.get('page_size') or self.page_size)
+        page = int(args.get('page') or 1)
+        size = int(args.get('page_size') or self.page_size)
 
-        data = get_query().paginate(page, size)
+        query = get_query()
+        search_qs = ''
+        if args.get('search', None) and hasattr(query, 'search'):
+            query = query.search(args['search'])
+            search_qs = '&search=%s' % args['search']
+
+        data = query.paginate(page, size)
         obj = {
             '_count': data.total,
             '_items': data.items,
         }
 
         if data.has_prev:
-            obj['_prev'] = '%s?page=%d%s' % (
+            obj['_prev'] = '%s?page=%d%s%s' % (
                 url_for('api_list', table=table, _external=True),
                 data.prev_num,
-                '&page_size=%d' % size if size != self.page_size else ''
+                '&page_size=%d' % size if size != self.page_size else '',
+                search_qs
             )
 
         if data.has_next:
-            obj['_next'] = '%s?page=%d%s' % (
+            obj['_next'] = '%s?page=%d%s%s' % (
                 url_for('api_list', table=table, _external=True),
                 data.next_num,
-                '&page_size=%d' % size if size != self.page_size else ''
+                '&page_size=%d' % size if size != self.page_size else '',
+                search_qs
             )
 
         result = schema().dump(obj)
         return jsonify(result.data)
 
     def get_detail_or_404(self, table, id):
-        schema, get_query = self.get_endpoint_or_404(table, True)
+        schema, get_query, model = self.get_endpoint_or_404(table, True)
 
         try:
             item = get_query(id).one()

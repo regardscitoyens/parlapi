@@ -31,6 +31,7 @@ setup(
         'marshmallow-sqlalchemy>=0.10,<0.11',
         'psycopg2>=2,<3',
         'requests>=2.10,<3',
+        'sqlalchemy-searchable>=0.10,<1',
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",

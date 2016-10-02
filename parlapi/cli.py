@@ -14,13 +14,23 @@ def runserver():
     app.run()
 
 
-@cli.command(short_help=u'Crée ou met à jour le schéma BDD')
+@cli.command(short_help=u'Crée le schéma BDD')
 def createdb():
     from .parlapi import app
     from .models import db
 
     with app.app_context():
+        db.configure_mappers()
         db.create_all()
+
+
+@cli.command(short_help=u'Supprime le schéma BDD')
+def dropdb():
+    from .parlapi import app
+    from .models import db
+
+    with app.app_context():
+        db.drop_all()
 
 
 @cli.command(short_help=u'Met à jour acteurs, mandats, organes depuis l\'AN')

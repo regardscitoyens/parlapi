@@ -124,11 +124,11 @@ class ImportDossiersJob(BaseANJob):
         for auteur in auteurs:
             if 'acteur' in auteur:
                 qual = auteur['acteur'].get('qualite', None)
-                ad = ActeurDocument(relation='auteur', qualite=qual)
+                ad = ActeurDocument(relation=u'auteur', qualite=qual)
                 ad.acteur = self.get_acteur(auteur['acteur']['acteurRef'])
                 acteurs.append(ad)
             elif 'organe' in auteur:
-                od = OrganeDocument(relation='auteur')
+                od = OrganeDocument(relation=u'auteur')
                 od.organe = self.get_organe(auteur['organe']['organeRef'])
                 organes.append(od)
             else:
@@ -147,13 +147,13 @@ class ImportDossiersJob(BaseANJob):
                     dr = None
 
                 if 'acteur' in auteur:
-                    ad = ActeurDocument(relation='cosignataire',
+                    ad = ActeurDocument(relation=u'cosignataire',
                                         date_cosignature=dc,
                                         date_retrait_cosignature=dr)
                     ad.acteur = self.get_acteur(auteur['acteur']['acteurRef'])
                     acteurs.append(ad)
                 elif 'organe' in auteur:
-                    od = OrganeDocument(relation='cosignataire',
+                    od = OrganeDocument(relation=u'cosignataire',
                                         date_cosignature=dc,
                                         date_retrait_cosignature=dr)
                     od.organe = self.get_organe(auteur['organe']['organeRef'])

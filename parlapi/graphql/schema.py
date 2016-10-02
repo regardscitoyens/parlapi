@@ -20,76 +20,69 @@ from ..models import (
 )
 
 
+class ParlapiBaseMeta:
+    exclude_fields = ('search_vector',)
+    interfaces = (relay.Node,)
+
+
 class Acte(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = ActeModel
-        interfaces = (relay.Node,)
 
 
 class Acteur(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = ActeurModel
-        interfaces = (relay.Node,)
 
 
 class ActeurDocument(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = ActeurDocumentModel
-        interfaces = (relay.Node,)
 
 
 class Document(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = DocumentModel
-        interfaces = (relay.Node,)
 
 
 class Dossier(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = DossierModel
-        interfaces = (relay.Node,)
 
 
 class Job(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = JobModel
-        interfaces = (relay.Node,)
 
 
 class Legislature(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = LegislatureModel
-        interfaces = (relay.Node,)
 
 
 class Mandat(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = MandatModel
-        interfaces = (relay.Node,)
 
 
 class Organe(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = OrganeModel
-        interfaces = (relay.Node,)
 
 
 class OrganeDocument(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = OrganeDocumentModel
-        interfaces = (relay.Node,)
 
 
 class Regime(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = RegimeModel
-        interfaces = (relay.Node,)
 
 
 class Theme(SQLAlchemyObjectType):
-    class Meta:
+    class Meta(ParlapiBaseMeta):
         model = ThemeModel
-        interfaces = (relay.Node,)
 
 
 class Query(graphene.ObjectType):
