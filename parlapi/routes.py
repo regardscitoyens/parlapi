@@ -17,8 +17,8 @@ def setup_routes(app, rest_api, graphql_api):
         piwik = None
         if app.config['PIWIK_HOST']:
             piwik = {
-                host: app.config['PIWIK_HOST'],
-                id: app.config['PIWIK_ID']
+                'host': app.config['PIWIK_HOST'],
+                'id': app.config['PIWIK_ID']
             }
 
         return render_template(
