@@ -40,6 +40,14 @@ class BaseJob(object):
     def error(self, msg):
         self.app.logger.error('<%s> %s' % (self.job_name, msg))
 
+    def parse_date(self, date):
+        if not date:
+            return None
+        elif len(date) >= 19:
+            return dateparser.parse(date[0:19])
+        else:
+            return dateparser.parse(date[0:10])
+
     def get_or_create(self, model, **kwargs):
         item = model.query.filter_by(**kwargs).first()
         if not item:

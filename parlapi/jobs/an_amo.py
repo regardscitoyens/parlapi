@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import dateparser
 import ijson
 
 from .base import BaseANJob
@@ -65,13 +64,13 @@ class ImportAMOJob(BaseANJob):
 
         nais = ec['infoNaissance']
 
-        acteur.date_naissance = dateparser.parse(nais['dateNais'])
+        acteur.date_naissance = self.parse_date(nais['dateNais'])
         acteur.ville_naissance = nais['villeNais']
         acteur.dept_naissance = nais['depNais']
         acteur.pays_naissance = nais['paysNais']
 
         if ec.get('dateDeces', None):
-            acteur.date_deces = dateparser.parse(ec['dateDeces'])
+            acteur.date_deces = self.parse_date(ec['dateDeces'])
 
         if 'profession' in json:
             pro = json['profession']
@@ -96,11 +95,11 @@ class ImportAMOJob(BaseANJob):
 
         mandat.organes = [self.get_organe(ref) for ref in organe_refs]
 
-        mandat.date_debut = dateparser.parse(json['dateDebut'])
+        mandat.date_debut = self.parse_date(json['dateDebut'])
         if json.get('datePublication', None):
-            mandat.date_publication = dateparser.parse(json['datePublication'])
+            mandat.date_publication = self.parse_date(json['datePublication'])
         if json.get('dateFin', None):
-            mandat.date_fin = dateparser.parse(json['dateFin'])
+            mandat.date_fin = self.parse_date(json['dateFin'])
 
         mandat.qualite = json['infosQualite']['codeQualite']
         mandat.nomination_principale = json['nominPrincipale'] == '1'
@@ -137,12 +136,12 @@ class ImportAMOJob(BaseANJob):
         organe.abbreviation = json['libelleAbrev']
 
         if json['viMoDe']['dateDebut']:
-            organe.date_debut = dateparser.parse(json['viMoDe']['dateDebut'])
+            organe.date_debut = self.parse_date(json['viMoDe']['dateDebut'])
         else:
             organe.date_debut = None
 
         if json['viMoDe']['dateFin']:
-            organe.date_fin = dateparser.parse(json['viMoDe']['dateFin'])
+            organe.date_fin = self.parse_date(json['viMoDe']['dateFin'])
         else:
             organe.date_fin = None
 

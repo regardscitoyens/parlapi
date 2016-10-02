@@ -255,6 +255,8 @@ class Document(db.Model):
 
     actes_legislatifs = db.relationship('Acte', back_populates='document')
 
+    amendements = db.relationship('Amendement', back_populates='document')
+
     dossier_id = db.Column(db.Unicode, db.ForeignKey('dossiers.id'))
     dossier = db.relationship('Dossier', back_populates='documents')
 
@@ -315,3 +317,58 @@ class Acte(db.Model):
                                                        remote_side=[id]))
 
     search_vector = db.Column(TSVectorType('code', 'libelle'))
+
+
+class Amendement(db.Model):
+    __tablename__ = 'amendements'
+    query_class = SearchableQuery
+
+    id = db.Column(db.Unicode, primary_key=True)
+
+    numero = db.Column(db.Integer)
+    num_rect = db.Column(db.Integer)
+    numero_long = db.Column(db.Unicode)
+    etape_texte = db.Column(db.Unicode)
+    tri = db.Column(db.Unicode)
+    cardinal_multiples = db.Column(db.Integer)
+    etat = db.Column(db.Unicode)
+    article_99 = db.Column(db.Boolean)
+    sort = db.Column(db.Unicode)
+    date_sort = db.Column(db.Date)
+
+    division_texte = db.Column(db.Unicode)
+    division_position = db.Column(db.Unicode)
+    division_article_additionnel = db.Column(db.Boolean)
+    division_chapitre_additionnel = db.Column(db.Boolean)
+    division_alinea = db.Column(db.Integer)
+    division_alinea_position = db.Column(db.Unicode)
+
+    corps_dispositif = db.Column(db.UnicodeText)
+    corps_expose = db.Column(db.UnicodeText)
+
+    code_loi = db.Column(db.Unicode)
+    code_loi_division = db.Column(db.Unicode)
+
+    date_depot = db.Column(db.Date)
+    date_distribution = db.Column(db.Date)
+
+    # TODO référence séance json['seanceDiscussion']
+    # TODO auteurs/cosignataires
+
+    legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
+    legislature = db.relationship('Legislature')
+
+    document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
+    document = db.relationship('Document', back_populates='amendements')
+
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe')
+
+    amendement_id = db.Column(db.Unicode, db.ForeignKey('amendements.id'))
+    sous_amendements = db.relationship('Amendement',
+                                       backref=db.backref('amendement_parent',
+                                                          remote_side=[id]))
+
+    search_vector = db.Column(TSVectorType('numero_long', 'corps_expose',
+                                           'corps_dispositif', 'code_loi',
+                                           'code_loi_division'))

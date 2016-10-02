@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import dateparser
-
 from .base import BaseANJob
 from .utils import ijson_items
 from ..models import (Organe, Legislature, Acteur, Document, Theme,
@@ -74,14 +72,6 @@ class ImportDossiersJob(BaseANJob):
             if prefix == dossier:
                 self.save_dossier(obj['dossierParlementaire'])
 
-    def parse_date(self, date):
-        if not date:
-            return None
-        elif len(date) >= 19:
-            return dateparser.parse(date[0:19])
-        else:
-            return dateparser.parse(date[0:10])
-
     def save_document(self, json, chaine=[]):
         if json['uid'] in chaine:
             self.warn(
@@ -140,9 +130,9 @@ class ImportDossiersJob(BaseANJob):
                 cosign = [cosign]
 
             for auteur in cosign:
-                dc = dateparser.parse(auteur['dateCosignature'])
+                dc = self.parse_date(auteur['dateCosignature'])
                 if auteur.get('dateRetraitCosignature', None):
-                    dr = dateparser.parse(auteur['dateRetraitCosignature'])
+                    dr = self.parse_date(auteur['dateRetraitCosignature'])
                 else:
                     dr = None
 

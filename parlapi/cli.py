@@ -57,5 +57,17 @@ def update_dossiers_an(force, file):
         run(app, force, file)
 
 
+@cli.command(short_help=u'Met à jour amendements depuis l\'AN')
+@click.option('--force', is_flag=True)
+@click.option('--file', default=None)
+def update_amendements_an(force, file):
+    from .parlapi import app
+    from .jobs.an_amendements import run
+
+    with app.app_context():
+        app.config.update(SQLALCHEMY_ECHO=False)
+        run(app, force, file)
+
+
 if __name__ == '__main__':
     cli()
