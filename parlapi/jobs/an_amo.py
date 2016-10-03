@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import ijson
-
 from .base import BaseANJob
 from .utils import ijson_items
 from ..models import Organe, Regime, Legislature, Acteur, Mandat

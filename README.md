@@ -20,6 +20,7 @@ n'est ajoutée au modèle.
 - PostgreSQL 9.2+
 - pip
 - virtualenv
+- libyajl2 + headers
 
 ### Installation
 

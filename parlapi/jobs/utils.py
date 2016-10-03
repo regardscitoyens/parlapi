@@ -1,4 +1,4 @@
-import ijson
+import ijson.backends.yajl2_cffi as ijson
 from ijson.common import ObjectBuilder
 
 

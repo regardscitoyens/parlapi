@@ -19,6 +19,7 @@ setup(
     long_description=read('README.md'),
     install_requires=[
         'beautifulsoup4>=4.4,<5',
+        'cffi>=1.8,<2',
         'click>=6.6,<7',
         'dateparser>=0.4,<0.5',
         'flask>=0.11,<0.12',
@@ -30,6 +31,7 @@ setup(
         'ijson>=2.3,<3',
         'marshmallow-sqlalchemy>=0.10,<0.11',
         'psycopg2>=2,<3',
+        'pycparser==2.13',  # 2.14 has CFFI bug
         'requests>=2.10,<3',
         'sqlalchemy-searchable>=0.10,<1',
     ],
