@@ -28,6 +28,7 @@ setup(
         'flask-sqlalchemy>=2.1,<3',
         'graphene_sqlalchemy>=1.0,<2',
         'html5lib>=0.9999999,<1',
+        'humanize>=0.5,<1',
         'ijson>=2.3,<3',
         'marshmallow-sqlalchemy>=0.10,<0.11',
         'psycopg2>=2,<3',
