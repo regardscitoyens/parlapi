@@ -5,7 +5,7 @@ from sqlalchemy_searchable import make_searchable, SearchQueryMixin
 from sqlalchemy_utils.types import TSVectorType
 
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={'autoflush': False, 'autocommit': False})
 make_searchable(options={'regconfig': 'pg_catalog.french'})
 
 
@@ -26,6 +26,8 @@ class Job(db.Model):
     date_exec = db.Column(db.DateTime)
     url_fichier = db.Column(db.Unicode)
     date_fichier = db.Column(db.DateTime)
+    temps_exec = db.Column(db.Integer)
+    nb_items = db.Column(db.Integer)
     resultat = db.Column(db.Unicode)
 
     search_vector = db.Column(TSVectorType('nom', 'url_fichier'))

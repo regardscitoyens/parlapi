@@ -23,11 +23,13 @@ class BaseJob(object):
             self._job = self.get_or_create(Job, nom=self.job_name)
         return self._job
 
-    def __init__(self, app):
+    def __init__(self, app, flush_every=1000):
         self.app = app
-        self._job = None
         self.current = None
+        self._job = None
+        self._start = datetime.now()
         self._count = 0
+        self._flush_every = 1000
 
     def debug(self, msg):
         self.app.logger.debug('<%s> %s' % (self.job_name, msg))
@@ -53,19 +55,23 @@ class BaseJob(object):
         item = model.query.filter_by(**kwargs).first()
         if not item:
             if self._count > 0 and self._count % 1000 == 0:
-                self.debug('%d objects created, committing' % self._count)
                 db.session.commit()
 
             item = model(**kwargs)
             db.session.add(item)
 
-            self._count += 1
+        self._count += 1
+        if self._count % self._flush_every == 0:
+            self.debug('%d objects touched, flushing' % self._count)
+            db.session.flush()
 
         return item
 
     def update_status(self, status=None, file=None, filedate=None):
         job = self.job
         job.date_exec = datetime.now()
+        job.temps_exec = (datetime.now() - self._start).seconds
+        job.nb_items = self._count
         job.resultat = status or u''
 
         if file:
