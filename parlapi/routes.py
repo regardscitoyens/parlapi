@@ -34,6 +34,9 @@ def setup_routes(app, rest_api, graphql_api):
 
     @app.template_filter('basename')
     def basename(path):
+        if not path:
+            return ''
+
         return os.path.basename(path)
 
     @app.route('/')
