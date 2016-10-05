@@ -13,6 +13,7 @@ class ImportDossiersJob(BaseANJob):
     cache_themes = {}
     cache_dossiers = {}
     cache_documents = {}
+    cache_actes = {}
 
     def __init__(self, app, name, url):
         self._job_name = name
@@ -61,6 +62,13 @@ class ImportDossiersJob(BaseANJob):
                 Document, id=id)
 
         return self.cache_documents[id]
+
+    def get_acte(self, id):
+        if id not in self.cache_actes:
+            self.cache_actes[id] = self.get_or_create(
+                Acte, id=id)
+
+        return self.cache_actes[id]
 
     def parse_json(self, filename, stream):
         document = 'export.textesLegislatifs.document.item'
@@ -205,7 +213,7 @@ class ImportDossiersJob(BaseANJob):
 
     def save_acte(self, json):
         self.current = 'Acte %s' % json['uid']
-        acte = self.get_or_create(Acte, id=json['uid'])
+        acte = self.get_acte(json['uid'])
 
         acte.code = json['codeActe']
         acte.libelle = json['libelleActe']['nomCanonique']
