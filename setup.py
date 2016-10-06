@@ -22,6 +22,7 @@ setup(
         'cffi>=1.8,<2',
         'click>=6.6,<7',
         'dateparser>=0.4,<0.5',
+        'eralchemy>=1.0,<2',
         'flask>=0.11,<0.12',
         'flask-graphql>=1.3,<2',
         'flask-marshmallow>=0.7,<0.8',

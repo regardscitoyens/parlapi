@@ -33,6 +33,17 @@ def dropdb():
         db.drop_all()
 
 
+@cli.command(short_help=u'Génère un diagramme ER de la BDD')
+@click.option('--output')
+def erdiagram(output):
+    from eralchemy import render_er
+    from .parlapi import app
+    from .models import db
+
+    with app.app_context():
+        render_er(db.Model, output)
+
+
 @cli.command(short_help=u'Met à jour acteurs, mandats, organes depuis l\'AN')
 @click.option('--force', is_flag=True)
 @click.option('--file', default=None)
