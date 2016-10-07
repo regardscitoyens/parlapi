@@ -92,8 +92,6 @@ class Organe(db.Model):
     mandats = db.relationship('Mandat', secondary=assoc_mandats_organes,
                               back_populates='organes')
 
-    documents = db.relationship('OrganeDocument', back_populates='organe')
-
     search_vector = db.Column(TSVectorType('libelle', 'libelle_court', 'type',
                                            'abbreviation'))
 
@@ -155,9 +153,6 @@ class Acteur(db.Model):
 
     mandats = db.relationship('Mandat', back_populates='acteur')
 
-    documents = db.relationship('ActeurDocument', back_populates='acteur')
-    dossiers = db.relationship('ActeurDossier', back_populates='acteur')
-
     search_vector = db.Column(TSVectorType('civilite', 'nom', 'prenom',
                                            'profession'))
 
@@ -198,7 +193,7 @@ class ActeurDocument(db.Model):
     date_retrait_cosignature = db.Column(db.Date)
 
     acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
-    acteur = db.relationship('Acteur', back_populates='documents')
+    acteur = db.relationship('Acteur')
 
     document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='acteurs')
@@ -215,7 +210,7 @@ class OrganeDocument(db.Model):
     date_retrait_cosignature = db.Column(db.Date)
 
     organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
-    organe = db.relationship('Organe', back_populates='documents')
+    organe = db.relationship('Organe')
 
     document_id = db.Column(db.Unicode, db.ForeignKey('documents.id'))
     document = db.relationship('Document', back_populates='organes')
@@ -275,7 +270,7 @@ class ActeurDossier(db.Model):
     relation = db.Column(db.Unicode)
 
     acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
-    acteur = db.relationship('Acteur', back_populates='dossiers')
+    acteur = db.relationship('Acteur')
 
     mandat_id = db.Column(db.Unicode, db.ForeignKey('mandats.id'))
     mandat = db.relationship('Mandat')
