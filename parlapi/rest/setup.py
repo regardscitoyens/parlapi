@@ -8,6 +8,7 @@ from ..models import (
     Acte,
     Acteur,
     ActeurDocument,
+    ActeurDossier,
     Amendement,
     Document,
     Dossier,
@@ -16,6 +17,7 @@ from ..models import (
     Mandat,
     Organe,
     OrganeDocument,
+    OrganeDossier,
     Regime,
     Theme
 )
@@ -83,11 +85,21 @@ def setup_api(app):
             fields = ('date_cosignature', 'date_retrait_cosignature',
                       'qualite', 'relation')
 
+    class ActeurDossierBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = ActeurDossier
+            fields = ('relation',)
+
     class OrganeDocumentBaseSchema(ma.ModelSchema):
         class Meta(ParlapiBaseMeta):
             model = OrganeDocument
             fields = ('date_cosignature', 'date_retrait_cosignature',
                       'relation')
+
+    class OrganeDossierBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = OrganeDossier
+            fields = ('relation',)
 
     class DocumentBaseSchema(ma.ModelSchema):
         class Meta(ParlapiBaseMeta):
@@ -145,9 +157,22 @@ def setup_api(app):
 
         acteur = api.nested(ActeurBaseSchema)
 
+    class ActeurDossierDossierSchema(ActeurDossierBaseSchema):
+        class Meta(ActeurDossierBaseSchema.Meta):
+            fields = ActeurDossierBaseSchema.Meta.fields + ('acteur', 'mandat')
+
+        acteur = api.nested(ActeurBaseSchema)
+        mandat = api.nested(MandatActeurSchema)
+
     class OrganeDocumentDocumentSchema(OrganeDocumentBaseSchema):
         class Meta(OrganeDocumentBaseSchema.Meta):
             fields = OrganeDocumentBaseSchema.Meta.fields + ('organe',)
+
+        organe = api.nested(OrganeBaseSchema)
+
+    class OrganeDossierDossierSchema(OrganeDossierBaseSchema):
+        class Meta(OrganeDossierBaseSchema.Meta):
+            fields = OrganeDossierBaseSchema.Meta.fields + ('organe',)
 
         organe = api.nested(OrganeBaseSchema)
 
@@ -219,8 +244,10 @@ def setup_api(app):
             fields = ()
 
         actes_legislatifs = api.nestedList(ActeBaseSchema)
+        acteurs = api.nestedList(ActeurDossierDossierSchema)
         documents = api.nestedList(DocumentBaseSchema)
         legislature = api.nested(LegislatureBaseSchema)
+        organes = api.nestedList(OrganeDossierDossierSchema)
 
     class ActeDetailSchema(ActeBaseSchema):
         class Meta(ActeBaseSchema.Meta):
@@ -355,7 +382,11 @@ def setup_api(app):
     def dossier_detail_query(id):
         return Dossier.query \
             .options(joinedload('actes_legislatifs')) \
+            .options(joinedload('acteurs').joinedload('acteur')) \
+            .options(joinedload('acteurs').joinedload('mandat')
+                                          .joinedload('organes')) \
             .options(joinedload('documents')) \
+            .options(joinedload('organes').joinedload('organe')) \
             .options(joinedload('legislature')) \
             .filter_by(id=id)
 

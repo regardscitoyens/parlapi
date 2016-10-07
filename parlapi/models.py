@@ -156,6 +156,7 @@ class Acteur(db.Model):
     mandats = db.relationship('Mandat', back_populates='acteur')
 
     documents = db.relationship('ActeurDocument', back_populates='acteur')
+    dossiers = db.relationship('ActeurDossier', back_populates='acteur')
 
     search_vector = db.Column(TSVectorType('civilite', 'nom', 'prenom',
                                            'profession'))
@@ -187,7 +188,6 @@ class Theme(db.Model):
 
 class ActeurDocument(db.Model):
     __tablename__ = 'acteurs_documents'
-    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -206,7 +206,6 @@ class ActeurDocument(db.Model):
 
 class OrganeDocument(db.Model):
     __tablename__ = 'organes_documents'
-    query_class = SearchableQuery
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -269,6 +268,35 @@ class Document(db.Model):
                                            'denomination_structurelle'))
 
 
+class ActeurDossier(db.Model):
+    __tablename__ = 'acteurs_dossiers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    relation = db.Column(db.Unicode)
+
+    acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
+    acteur = db.relationship('Acteur', back_populates='dossiers')
+
+    mandat_id = db.Column(db.Unicode, db.ForeignKey('mandats.id'))
+    mandat = db.relationship('Mandat')
+
+    dossier_id = db.Column(db.Unicode, db.ForeignKey('dossiers.id'))
+    dossier = db.relationship('Dossier', back_populates='acteurs')
+
+
+class OrganeDossier(db.Model):
+    __tablename__ = 'organes_dossiers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    relation = db.Column(db.Unicode)
+
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe')
+
+    dossier_id = db.Column(db.Unicode, db.ForeignKey('dossiers.id'))
+    dossier = db.relationship('Dossier', back_populates='organes')
+
+
 class Dossier(db.Model):
     __tablename__ = 'dossiers'
     query_class = SearchableQuery
@@ -285,11 +313,12 @@ class Dossier(db.Model):
     legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
     legislature = db.relationship('Legislature')
 
-    # TODO initiateurs (acteurs + organes)
-
     actes_legislatifs = db.relationship('Acte', back_populates='dossier')
 
     documents = db.relationship('Document', back_populates='dossier')
+
+    acteurs = db.relationship('ActeurDossier', back_populates='dossier')
+    organes = db.relationship('OrganeDossier', back_populates='dossier')
 
     search_vector = db.Column(TSVectorType('titre', 'procedure_libelle',
                                            'senat_chemin', 'titre_chemin'))

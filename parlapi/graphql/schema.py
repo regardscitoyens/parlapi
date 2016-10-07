@@ -8,6 +8,7 @@ from ..models import (
     Acte as ActeModel,
     Acteur as ActeurModel,
     ActeurDocument as ActeurDocumentModel,
+    ActeurDossier as ActeurDossierModel,
     Amendement as AmendementModel,
     Document as DocumentModel,
     Dossier as DossierModel,
@@ -16,6 +17,7 @@ from ..models import (
     Mandat as MandatModel,
     Organe as OrganeModel,
     OrganeDocument as OrganeDocumentModel,
+    OrganeDossier as OrganeDossierModel,
     Regime as RegimeModel,
     Theme as ThemeModel,
 )
@@ -39,6 +41,11 @@ class Acteur(SQLAlchemyObjectType):
 class ActeurDocument(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = ActeurDocumentModel
+
+
+class ActeurDossier(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ActeurDossierModel
 
 
 class Amendement(SQLAlchemyObjectType):
@@ -81,6 +88,11 @@ class OrganeDocument(SQLAlchemyObjectType):
         model = OrganeDocumentModel
 
 
+class OrganeDossier(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = OrganeDossierModel
+
+
 class Regime(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = RegimeModel
@@ -112,6 +124,7 @@ schema = graphene.Schema(
         Acte,
         Acteur,
         ActeurDocument,
+        ActeurDossier,
         Amendement,
         Document,
         Dossier,
@@ -120,6 +133,7 @@ schema = graphene.Schema(
         Mandat,
         Organe,
         OrganeDocument,
+        OrganeDossier,
         Regime,
         Theme,
     ]

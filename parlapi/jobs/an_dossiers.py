@@ -2,13 +2,15 @@
 
 from .base import BaseANJob
 from .utils import ijson_items
-from ..models import (Organe, Legislature, Acteur, Document, Theme,
-                      ActeurDocument, OrganeDocument, Dossier, Acte)
+from ..models import (Organe, Legislature, Acteur, Document, Theme, Mandat,
+                      ActeurDocument, OrganeDocument, Dossier, ActeurDossier,
+                      OrganeDossier, Acte)
 
 
 class ImportDossiersJob(BaseANJob):
     cache_legislatures = {}
     cache_acteurs = {}
+    cache_mandats = {}
     cache_organes = {}
     cache_themes = {}
     cache_dossiers = {}
@@ -41,6 +43,12 @@ class ImportDossiersJob(BaseANJob):
             self.cache_acteurs[id] = self.get_or_create(Acteur, id=id)
 
         return self.cache_acteurs[id]
+
+    def get_mandat(self, id):
+        if id not in self.cache_mandats:
+            self.cache_mandats[id] = self.get_or_create(Mandat, id=id)
+
+        return self.cache_mandats[id]
 
     def get_organe(self, id):
         if id not in self.cache_organes:
@@ -198,7 +206,30 @@ class ImportDossiersJob(BaseANJob):
         dossier.procedure_code = int(pp['code'])
         dossier.procedure_libelle = pp['libelle']
 
-        # TODO initiateur(s)
+        acteursdossier = []
+        organesdossier = []
+
+        if json.get('initiateur', None):
+            if json['initiateur'].get('acteurs', None):
+                acteurs = json['initiateur']['acteurs']['acteur']
+                if isinstance(acteurs, dict):
+                    acteurs = [acteurs]
+                for acteur in acteurs:
+                    ad = ActeurDossier(relation=u'initiateur')
+                    ad.acteur = self.get_acteur(acteur['acteurRef'])
+                    ad.mandat = self.get_mandat(acteur['mandatRef'])
+                    acteursdossier.append(ad)
+            if json['initiateur'].get('organes', None):
+                organes = json['initiateur']['organes']['organe']
+                if isinstance(organes, dict):
+                    organes = [organes]
+                for organe in organes:
+                    od = OrganeDossier(relation=u'initiateur')
+                    od.organe = self.get_organe(organe['organeRef']['uid'])
+                    organesdossier.append(od)
+
+        dossier.acteurs = acteursdossier
+        dossier.organes = organesdossier
 
         if json.get('actesLegislatifs', None):
             json_actes = json['actesLegislatifs']['acteLegislatif']
