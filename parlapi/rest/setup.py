@@ -19,7 +19,10 @@ from ..models import (
     OrganeDocument,
     OrganeDossier,
     Regime,
-    Theme
+    Scrutin,
+    ScrutinGroupe,
+    Theme,
+    Votant
 )
 
 
@@ -129,6 +132,13 @@ def setup_api(app):
                       '_url')
 
         _url = api.detailURL('amendements')
+
+    class ScrutinBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = Scrutin
+            fields = ('titre', 'date', 'sort_code', '_url')
+
+        _url = api.detailURL('scrutins')
 
     # Semi-detailed schemas (for use in some relations)
 
@@ -268,6 +278,29 @@ def setup_api(app):
         legislature = api.nested(LegislatureBaseSchema)
         organe = api.nested(OrganeBaseSchema)
         sous_amendements = api.nestedList(AmendementBaseSchema)
+
+    class VotantSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = Votant
+            exclude = ('groupe', 'id', 'mandat')
+
+        acteur = api.nested(ActeurBaseSchema)
+
+    class ScrutinGroupeSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = ScrutinGroupe
+            exclude = ('scrutin', 'id')
+
+        organe = api.nested(OrganeBaseSchema)
+        votants = api.nestedList(VotantSchema)
+
+    class ScrutinDetailSchema(ScrutinBaseSchema):
+        class Meta(ScrutinBaseSchema.Meta):
+            fields = ()
+
+        legislature = api.nested(LegislatureBaseSchema)
+        organe = api.nested(OrganeBaseSchema)
+        groupes = api.nestedList(ScrutinGroupeSchema)
 
     # API creation
 
@@ -428,6 +461,22 @@ def setup_api(app):
         list_schema=AmendementListSchema,
         description=u'Amendements',
         detail_query=amendement_detail_query
+    )
+
+    def scrutin_detail_query(id):
+        return Scrutin.query \
+               .options(joinedload('legislature')) \
+               .options(joinedload('organe')) \
+               .options(joinedload('groupes').joinedload('organe')) \
+               .options(joinedload('groupes').joinedload('votants').joinedload('acteur')) \
+               .filter_by(id=id)
+
+    api.endpoint(
+        Scrutin,
+        ScrutinDetailSchema,
+        list_schema=ScrutinBaseSchema,
+        description=u'Scrutins',
+        detail_query=scrutin_detail_query
     )
 
     return api

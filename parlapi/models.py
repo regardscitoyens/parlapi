@@ -403,3 +403,86 @@ class Amendement(db.Model):
     search_vector = db.Column(TSVectorType('numero_long', 'corps_expose',
                                            'corps_dispositif', 'code_loi',
                                            'code_loi_division'))
+
+
+class Scrutin(db.Model):
+    __tablename__ = 'scrutins'
+    query_class = SearchableQuery
+
+    id = db.Column(db.Unicode, primary_key=True)
+
+    numero = db.Column(db.Integer)
+    date = db.Column(db.Date)
+    quantieme_jour_seance = db.Column(db.Integer)
+    titre = db.Column(db.Unicode)
+    demandeur = db.Column(db.Unicode)
+    objet = db.Column(db.Unicode)
+
+    type_code = db.Column(db.Unicode)
+    type_libelle = db.Column(db.Unicode)
+    type_majorite = db.Column(db.Unicode)
+
+    sort_code = db.Column(db.Unicode)
+    sort_libelle = db.Column(db.Unicode)
+
+    mode_publication = db.Column(db.Unicode)
+
+    synthese_votants = db.Column(db.Integer)
+    synthese_exprimes = db.Column(db.Integer)
+    synthese_requis = db.Column(db.Integer)
+    synthese_pour = db.Column(db.Integer)
+    synthese_contre = db.Column(db.Integer)
+    synthese_abstention = db.Column(db.Integer)
+    synthese_nonvotant = db.Column(db.Integer)
+
+    # TODO référence session/séance
+    # TODO mise au point
+
+    legislature_id = db.Column(db.Integer, db.ForeignKey('legislatures.id'))
+    legislature = db.relationship('Legislature')
+
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe')
+
+    groupes = db.relationship('ScrutinGroupe', back_populates='scrutin')
+
+    search_vector = db.Column(TSVectorType('titre', 'objet'))
+
+
+class ScrutinGroupe(db.Model):
+    __tablename__ = 'scrutins_groupes'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    nombre_membres = db.Column(db.Integer)
+    position_majoritaire = db.Column(db.Unicode)
+    decompte_pour = db.Column(db.Integer)
+    decompte_contre = db.Column(db.Integer)
+    decompte_abstention = db.Column(db.Integer)
+    decompte_nonvotant = db.Column(db.Integer)
+
+    scrutin_id = db.Column(db.Unicode, db.ForeignKey('scrutins.id'))
+    scrutin = db.relationship('Scrutin', back_populates='groupes')
+
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe')
+
+    votants = db.relationship('Votant', back_populates='groupe')
+
+
+class Votant(db.Model):
+    __tablename__ = 'votants'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    position = db.Column(db.Unicode)
+    cause = db.Column(db.Unicode)
+
+    groupe_id = db.Column(db.Integer, db.ForeignKey('scrutins_groupes.id'))
+    groupe = db.relationship('ScrutinGroupe', back_populates='votants')
+
+    acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
+    acteur = db.relationship('Acteur')
+
+    mandat_id = db.Column(db.Unicode, db.ForeignKey('mandats.id'))
+    mandat = db.relationship('Mandat')

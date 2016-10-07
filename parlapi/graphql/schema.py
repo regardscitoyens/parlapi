@@ -19,7 +19,10 @@ from ..models import (
     OrganeDocument as OrganeDocumentModel,
     OrganeDossier as OrganeDossierModel,
     Regime as RegimeModel,
+    Scrutin as ScrutinModel,
+    ScrutinGroupe as ScrutinGroupeModel,
     Theme as ThemeModel,
+    Votant as VotantModel,
 )
 
 
@@ -98,9 +101,24 @@ class Regime(SQLAlchemyObjectType):
         model = RegimeModel
 
 
+class Scrutin(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ScrutinModel
+
+
+class ScrutinGroupe(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ScrutinGroupeModel
+
+
 class Theme(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = ThemeModel
+
+
+class Votant(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = VotantModel
 
 
 class Query(graphene.ObjectType):
@@ -115,6 +133,7 @@ class Query(graphene.ObjectType):
     all_mandats = SQLAlchemyConnectionField(Mandat)
     all_organes = SQLAlchemyConnectionField(Organe)
     all_regimes = SQLAlchemyConnectionField(Regime)
+    all_scrutins = SQLAlchemyConnectionField(Scrutin)
     all_themes = SQLAlchemyConnectionField(Theme)
 
 
@@ -135,6 +154,9 @@ schema = graphene.Schema(
         OrganeDocument,
         OrganeDossier,
         Regime,
+        Scrutin,
+        ScrutinGroupe,
         Theme,
+        Votant,
     ]
 )
