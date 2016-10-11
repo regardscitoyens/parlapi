@@ -4,6 +4,7 @@ from flask_marshmallow import Marshmallow
 from sqlalchemy.orm import joinedload
 
 from .api import API
+from .utils import prefetched
 from ..models import (
     Acte,
     Acteur,
@@ -310,173 +311,106 @@ def setup_api(app):
         description=u'Jobs d\'import de données'
     )
 
-    def regime_detail_query(id):
-        return Regime.query \
-            .options(joinedload('organes')) \
-            .options(joinedload('legislatures')) \
-            .filter_by(id=id)
-
     api.endpoint(
         Regime,
         RegimeDetailSchema,
         list_schema=RegimeBaseSchema,
         description=u'Régimes politiques',
-        detail_query=regime_detail_query
+        detail_query=prefetched(Regime, ['organes', 'legislatures'])
     )
-
-    def legislature_detail_query(id):
-        return Legislature.query \
-            .options(joinedload('organes')) \
-            .options(joinedload('regime')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Legislature,
         LegislatureDetailSchema,
         list_schema=LegislatureBaseSchema,
         description=u'Législatures',
-        detail_query=legislature_detail_query
+        detail_query=prefetched(Legislature, ['organes', 'regime'])
     )
-
-    def organe_detail_query(id):
-        return Organe.query \
-            .options(joinedload('legislature')) \
-            .options(joinedload('regime')) \
-            .options(joinedload('mandats').joinedload('acteur')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Organe,
         OrganeDetailSchema,
         list_schema=OrganeBaseSchema,
         description=u'Organes (ministères, commissions, organismes...)',
-        detail_query=organe_detail_query
+        detail_query=prefetched(Organe, ['legislature', 'regime',
+                                         'mandats.acteur'])
     )
-
-    def acteur_detail_query(id):
-        return Acteur.query \
-            .options(joinedload('mandats').joinedload('organes')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Acteur,
         ActeurDetailSchema,
         list_schema=ActeurBaseSchema,
         description=u'Acteurs (ministres, parlementaires...)',
-        detail_query=acteur_detail_query
+        detail_query=prefetched(Acteur, ['mandats.organes'])
     )
-
-    def mandat_query():
-        return Mandat.query \
-            .options(joinedload('organes')) \
-            .options(joinedload('acteur'))
 
     api.endpoint(
         Mandat,
         MandatDetailSchema,
         list_schema=MandatListSchema,
         description=u'Mandats',
-        query=mandat_query
+        query=prefetched(Mandat, ['organes', 'acteur'])
     )
-
-    def theme_detail_query(id):
-        return Theme.query \
-            .options(joinedload('documents')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Theme,
         ThemeDetailSchema,
         list_schema=ThemeBaseSchema,
         description=u'Thèmes',
-        detail_query=theme_detail_query
+        detail_query=prefetched(Theme, ['documents'])
     )
-
-    def document_detail_query(id):
-        return Document.query \
-            .options(joinedload('actes_legislatifs')) \
-            .options(joinedload('acteurs').joinedload('acteur')) \
-            .options(joinedload('document_parent')) \
-            .options(joinedload('dossier')) \
-            .options(joinedload('divisions')) \
-            .options(joinedload('legislature')) \
-            .options(joinedload('organes').joinedload('organe')) \
-            .options(joinedload('themes')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Document,
         DocumentDetailSchema,
         list_schema=DocumentBaseSchema,
         description=u'Documents législatifs',
-        detail_query=document_detail_query
+        detail_query=prefetched(Document, ['actes_legislatifs',
+                                           'acteurs.acteur', 'document_parent',
+                                           'dossier', 'divisions',
+                                           'legislature', 'organes.organe',
+                                           'themes'])
     )
-
-    def dossier_detail_query(id):
-        return Dossier.query \
-            .options(joinedload('actes_legislatifs')) \
-            .options(joinedload('acteurs').joinedload('acteur')) \
-            .options(joinedload('acteurs').joinedload('mandat')
-                                          .joinedload('organes')) \
-            .options(joinedload('documents')) \
-            .options(joinedload('organes').joinedload('organe')) \
-            .options(joinedload('legislature')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Dossier,
         DossierDetailSchema,
         list_schema=DossierBaseSchema,
         description=u'Dossiers législatifs',
-        detail_query=dossier_detail_query
+        detail_query=prefetched(Dossier, ['actes_legislatifs',
+                                          'acteurs.acteur',
+                                          'acteurs.mandat.organes',
+                                          'documents',
+                                          'organes.organe',
+                                          'legislature'])
     )
-
-    def acte_detail_query(id):
-        return Acte.query \
-            .options(joinedload('acte_parent')) \
-            .options(joinedload('actes')) \
-            .options(joinedload('organe')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Acte,
         ActeDetailSchema,
         list_schema=ActeBaseSchema,
         description=u'Actes législatifs',
-        detail_query=acte_detail_query
+        detail_query=prefetched(Acte, ['acte_parent', 'actes', 'organe'])
     )
-
-    def amendement_detail_query(id):
-        return Amendement.query \
-            .options(joinedload('legislature')) \
-            .options(joinedload('document')) \
-            .options(joinedload('organe')) \
-            .options(joinedload('sous_amendements')) \
-            .options(joinedload('amendement_parent')) \
-            .filter_by(id=id)
 
     api.endpoint(
         Amendement,
         AmendementDetailSchema,
         list_schema=AmendementListSchema,
         description=u'Amendements',
-        detail_query=amendement_detail_query
+        detail_query=prefetched(Amendement, ['legislature', 'document',
+                                             'organe', 'sous_amendements',
+                                             'amendement_parent'])
     )
-
-    def scrutin_detail_query(id):
-        return Scrutin.query \
-               .options(joinedload('legislature')) \
-               .options(joinedload('organe')) \
-               .options(joinedload('groupes').joinedload('organe')) \
-               .options(joinedload('groupes').joinedload('votants').joinedload('acteur')) \
-               .filter_by(id=id)
 
     api.endpoint(
         Scrutin,
         ScrutinDetailSchema,
         list_schema=ScrutinBaseSchema,
         description=u'Scrutins',
-        detail_query=scrutin_detail_query
+        detail_query=prefetched(Scrutin, ['legislature', 'organe',
+                                          'groupes.organe',
+                                          'gropes.votants.acteur'])
     )
 
     return api
