@@ -6,10 +6,6 @@ from ..models import Acteur, Amendement, Document, Legislature, Organe
 
 
 class ImportAmendementsJob(BaseANJob):
-    cache_amendements = {}
-    cache_documents = {}
-    cache_legislatures = {}
-    cache_organes = {}
 
     def __init__(self, app, name, url):
         self._job_name = name
@@ -18,34 +14,6 @@ class ImportAmendementsJob(BaseANJob):
     @property
     def job_name(self):
         return self._job_name
-
-    def get_amendement(self, id):
-        if id not in self.cache_amendements:
-            self.cache_amendements[id] = self.get_or_create(
-                Amendement, id=id)
-
-        return self.cache_amendements[id]
-
-    def get_document(self, id):
-        if id not in self.cache_documents:
-            self.cache_documents[id] = self.get_or_create(
-                Document, id=id)
-
-        return self.cache_documents[id]
-
-    def get_legislature(self, num):
-        if num not in self.cache_legislatures:
-            self.cache_legislatures[num] = self.get_or_create(
-                Legislature, id=int(num))
-
-        return self.cache_legislatures[num]
-
-    def get_organe(self, id):
-        if id not in self.cache_organes:
-            self.cache_organes[id] = self.get_or_create(
-                Organe, id=id)
-
-        return self.cache_organes[id]
 
     def parse_json(self, filename, stream):
         texte = 'textesEtAmendements.texteleg.item'
@@ -56,7 +24,7 @@ class ImportAmendementsJob(BaseANJob):
 
     def save_texte(self, json):
         self.current = u'Texte %s' % json['refTexteLegislatif']
-        document = self.get_document(json['refTexteLegislatif'])
+        document = self.get_cached(Document, json['refTexteLegislatif'])
 
         amendements = json['amendements']['amendement']
         if isinstance(amendements, dict):
@@ -67,15 +35,15 @@ class ImportAmendementsJob(BaseANJob):
 
     def save_amendement(self, json, document):
         self.current = u'Amendement %s' % json['uid']
-        am = self.get_amendement(json['uid'])
+        am = self.get_cached(Amendement, json['uid'])
 
         am.document = document
 
         id = json['identifiant']
         am.numero = int(id['numero'])
         am.num_rect = int(id['numRect'])
-        am.organe = self.get_organe(id['saisine']['organeExamen'])
-        am.legislature = self.get_legislature(id['legislature'])
+        am.organe = self.get_cached(Organe, id['saisine']['organeExamen'])
+        am.legislature = self.get_cached(Legislature, int(id['legislature']))
         am.numero_long = json['numeroLong']
         am.etape_texte = json['etapeTexte']
         am.tri = json['triAmendement']
@@ -83,7 +51,7 @@ class ImportAmendementsJob(BaseANJob):
 
         if json.get('amendementParent', None):
             am.amendement_parent = \
-                self.get_amendement(json['amendementParent'])
+                self.get_cached(Amendement, json['amendementParent'])
 
         am.etat = json['etat']
         am.article_99 = int(json['article99']) > 0

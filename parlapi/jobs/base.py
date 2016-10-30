@@ -13,6 +13,9 @@ from ..models import db, Job
 
 
 class BaseJob(object):
+    cache = {}
+    cache_pk = {'themes': 'theme', 'regimes': 'nom'}
+
     @property
     def job_name(self):
         raise NotImplementedError()
@@ -20,7 +23,7 @@ class BaseJob(object):
     @property
     def job(self):
         if not self._job:
-            self._job = self.get_or_create(Job, nom=self.job_name)
+            self._job, _ = self.get_or_create(Job, nom=self.job_name)
         return self._job
 
     def __init__(self, app, flush_every=1000):
@@ -32,16 +35,16 @@ class BaseJob(object):
         self._flush_every = 1000
 
     def debug(self, msg):
-        self.app.logger.debug('<%s> %s' % (self.job_name, msg))
+        self.app.logger.debug(u'<%s> %s' % (self.job_name, msg))
 
     def info(self, msg):
-        self.app.logger.info('<%s> %s' % (self.job_name, msg))
+        self.app.logger.info(u'<%s> %s' % (self.job_name, msg))
 
     def warn(self, msg):
-        self.app.logger.warn('<%s> %s' % (self.job_name, msg))
+        self.app.logger.warn(u'<%s> %s' % (self.job_name, msg))
 
     def error(self, msg):
-        self.app.logger.error('<%s> %s' % (self.job_name, msg))
+        self.app.logger.error(u'<%s> %s' % (self.job_name, msg))
 
     def parse_date(self, date):
         if not date:
@@ -52,6 +55,7 @@ class BaseJob(object):
             return dateparser.parse(date[0:10])
 
     def get_or_create(self, model, **kwargs):
+        created = False
         item = model.query.filter_by(**kwargs).first()
         if not item:
             if self._count > 0 and self._count % 1000 == 0:
@@ -59,13 +63,26 @@ class BaseJob(object):
 
             item = model(**kwargs)
             db.session.add(item)
+            created = True
 
         self._count += 1
         if self._count % self._flush_every == 0:
             self.debug('%d objects touched, flushing' % self._count)
             db.session.flush()
 
-        return item
+        return item, created
+
+    def get_cached(self, model, pk):
+        if model.__tablename__ not in self.cache:
+            self.cache[model.__tablename__] = {}
+
+        cache = self.cache[model.__tablename__]
+        pkfield = self.cache_pk.get(model.__tablename__, 'id')
+
+        if pk not in cache:
+            cache[pk], _ = self.get_or_create(model, **{pkfield: pk})
+
+        return cache[pk]
 
     def update_status(self, status=None, file=None, filedate=None):
         job = self.job
@@ -98,11 +115,12 @@ class BaseANJob(BaseJob):
             self.parse_json(filename, filestream)
             return True
         except Exception, e:
+            db.session.rollback()
             if self.current:
-                msg = 'Erreur (%s)' % self.current
+                msg = u'Erreur (%s)' % self.current
             else:
-                msg = 'Erreur'
-            stack = ''.join(traceback.format_exc())
+                msg = u'Erreur'
+            stack = u''.join(traceback.format_exc())
             self.error(u'%s: %s\n%s' % (msg, e, stack))
             self.update_status(u'error:parse-json')
             return False
@@ -181,7 +199,13 @@ class BaseANJob(BaseJob):
                         if not self.handle_json(f, zf):
                             return
 
-        except:
+        except Exception, e:
+            if self.current:
+                msg = u'Erreur (%s)' % self.current
+            else:
+                msg = u'Erreur'
+            stack = u''.join(traceback.format_exc())
+            self.error(u'%s: %s\n%s' % (msg, e, stack))
             self.error(u'Ouverture ZIP impossible')
             self.update_status(u'error:zip-open')
             return

@@ -7,10 +7,6 @@ from ..models import (Organe, Legislature, Acteur, Mandat, Scrutin, Votant,
 
 
 class ImportScrutinsJob(BaseANJob):
-    cache_legislatures = {}
-    cache_acteurs = {}
-    cache_mandats = {}
-    cache_organes = {}
 
     positions = {
         'nonVotants': u'non-votant',
@@ -27,32 +23,6 @@ class ImportScrutinsJob(BaseANJob):
     def job_name(self):
         return self._job_name
 
-    def get_legislature(self, num):
-        if num not in self.cache_legislatures:
-            self.cache_legislatures[num] = self.get_or_create(
-                Legislature, id=int(num))
-
-        return self.cache_legislatures[num]
-
-    def get_acteur(self, id):
-        if id not in self.cache_acteurs:
-            self.cache_acteurs[id] = self.get_or_create(Acteur, id=id)
-
-        return self.cache_acteurs[id]
-
-    def get_mandat(self, id):
-        if id not in self.cache_mandats:
-            self.cache_mandats[id] = self.get_or_create(Mandat, id=id)
-
-        return self.cache_mandats[id]
-
-    def get_organe(self, id):
-        if id not in self.cache_organes:
-            self.cache_organes[id] = self.get_or_create(
-                Organe, id=id)
-
-        return self.cache_organes[id]
-
     def parse_json(self, filename, stream):
         scrutin = 'scrutins.scrutin.item'
 
@@ -60,8 +30,8 @@ class ImportScrutinsJob(BaseANJob):
             self.save_scrutin(obj)
 
     def save_scrutin(self, json):
-        self.current = 'Scrutin %s' % json['uid']
-        scrutin = self.get_or_create(Scrutin, id=json['uid'])
+        self.current = u'Scrutin %s' % json['uid']
+        scrutin, _ = self.get_or_create(Scrutin, id=json['uid'])
 
         scrutin.numero = int(json['numero'])
         scrutin.date = self.parse_date(json['dateScrutin'])
@@ -88,19 +58,20 @@ class ImportScrutinsJob(BaseANJob):
         scrutin.synthese_abstention = int(sy['decompte']['abstention'])
         scrutin.synthese_nonvotant = int(sy['decompte']['nonVotant'])
 
-        scrutin.legislature = self.get_legislature(json['legislature'])
-        scrutin.organe = self.get_organe(json['organeRef'])
+        scrutin.legislature = self.get_cached(Legislature,
+            int(json['legislature']))
+        scrutin.organe = self.get_cached(Organe, json['organeRef'])
 
         gr = json['ventilationVotes']['organe']['groupes']['groupe']
         scrutin.groupes = [self.save_groupe(g) for g in gr]
 
     def save_groupe(self, json):
         cur = self.current
-        self.current = '%s > groupe %s' % (cur, json['organeRef'])
+        self.current = u'%s > groupe %s' % (cur, json['organeRef'])
 
         groupe = ScrutinGroupe()
 
-        groupe.organe = self.get_organe(json['organeRef'])
+        groupe.organe = self.get_cached(Organe, json['organeRef'])
         groupe.nombre_membres = int(json['nombreMembresGroupe'])
 
         vote = json['vote']
@@ -126,8 +97,8 @@ class ImportScrutinsJob(BaseANJob):
 
                 for v in vs:
                     votants.append(Votant(position=pos,
-                                   acteur=self.get_acteur(v['acteurRef']),
-                                   mandat=self.get_mandat(v['mandatRef']),
+                                   acteur=self.get_cached(Acteur, v['acteurRef']),
+                                   mandat=self.get_cached(Mandat, v['mandatRef']),
                                    cause=v.get('causePositionVote', None)))
         groupe.votants = votants
 

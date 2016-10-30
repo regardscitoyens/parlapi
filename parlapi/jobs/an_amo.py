@@ -6,9 +6,6 @@ from ..models import Organe, Regime, Legislature, Acteur, Mandat
 
 
 class ImportAMOJob(BaseANJob):
-    cache_organes = {}
-    cache_legislatures = {}
-    cache_regimes = {}
 
     def __init__(self, app, name, url):
         self._job_name = name
@@ -28,30 +25,9 @@ class ImportAMOJob(BaseANJob):
             elif prefix == organe:
                 self.save_organe(obj)
 
-    def get_organe(self, id):
-        if id not in self.cache_organes:
-            self.cache_organes[id] = self.get_or_create(
-                Organe, id=id)
-
-        return self.cache_organes[id]
-
-    def get_regime(self, nom):
-        if nom not in self.cache_regimes:
-            self.cache_regimes[nom] = self.get_or_create(
-                Regime, nom=nom)
-
-        return self.cache_regimes[nom]
-
-    def get_legislature(self, num):
-        if num not in self.cache_legislatures:
-            self.cache_legislatures[num] = self.get_or_create(
-                Legislature, id=int(num))
-
-        return self.cache_legislatures[num]
-
     def save_acteur(self, json):
-        self.current = 'Acteur %s' % json['uid']['#text']
-        acteur = self.get_or_create(Acteur, id=json['uid']['#text'])
+        self.current = u'Acteur %s' % json['uid']['#text']
+        acteur, _ = self.get_or_create(Acteur, id=json['uid']['#text'])
 
         ec = json['etatCivil']
         id = ec['ident']
@@ -81,8 +57,8 @@ class ImportAMOJob(BaseANJob):
             self.save_mandat(acteur, mandat_json)
 
     def save_mandat(self, acteur, json):
-        self.current = 'Mandat %s' % json['uid']
-        mandat = self.get_or_create(Mandat, id=json['uid'])
+        self.current = u'Mandat %s' % json['uid']
+        mandat, _ = self.get_or_create(Mandat, id=json['uid'])
 
         mandat.acteur = acteur
 
@@ -91,7 +67,7 @@ class ImportAMOJob(BaseANJob):
         else:
             organe_refs = json['organes']['organeRef']
 
-        mandat.organes = [self.get_organe(ref) for ref in organe_refs]
+        mandat.organes = [self.get_cached(Organe, ref) for ref in organe_refs]
 
         mandat.date_debut = self.parse_date(json['dateDebut'])
         if json.get('datePublication', None):
@@ -125,8 +101,8 @@ class ImportAMOJob(BaseANJob):
                 mandat.election_circo = int(li['numCirco'])
 
     def save_organe(self, json):
-        self.current = 'Organe %s' % json['uid']
-        organe = self.get_organe(json['uid'])
+        self.current = u'Organe %s' % json['uid']
+        organe = self.get_cached(Organe, json['uid'])
 
         organe.type = json['codeType']
         organe.libelle = json['libelle']
@@ -144,10 +120,11 @@ class ImportAMOJob(BaseANJob):
             organe.date_fin = None
 
         if json.get('regime', None):
-            organe.regime = self.get_regime(json['regime'])
+            organe.regime = self.get_cached(Regime, json['regime'])
 
         if json.get('legislature', None):
-            organe.legislature = self.get_legislature(json['legislature'])
+            organe.legislature = self.get_cached(Legislature,
+                int(json['legislature']))
             if organe.regime:
                 organe.legislature.regime = organe.regime
 
