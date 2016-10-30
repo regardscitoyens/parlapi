@@ -73,16 +73,22 @@ class BaseJob(object):
         return item, created
 
     def get_cached(self, model, pk):
+        item, _ = self.get_cached_(model, pk)
+        return item
+
+    def get_cached_(self, model, pk):
         if model.__tablename__ not in self.cache:
             self.cache[model.__tablename__] = {}
 
         cache = self.cache[model.__tablename__]
         pkfield = self.cache_pk.get(model.__tablename__, 'id')
+        created = False
 
         if pk not in cache:
-            cache[pk], _ = self.get_or_create(model, **{pkfield: pk})
+            cache[pk], created = self.get_or_create(model, **{pkfield: pk})
 
-        return cache[pk]
+        return cache[pk], created
+
 
     def update_status(self, status=None, file=None, filedate=None):
         job = self.job

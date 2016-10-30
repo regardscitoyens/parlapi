@@ -345,6 +345,11 @@ class Acte(db.Model):
     search_vector = db.Column(TSVectorType('code', 'libelle'))
 
 
+#
+# AN: amendements
+#
+
+
 class Amendement(db.Model):
     __tablename__ = 'amendements'
     query_class = SearchableQuery
@@ -481,3 +486,112 @@ class Votant(db.Model):
 
     mandat_id = db.Column(db.Unicode, db.ForeignKey('mandats.id'))
     mandat = db.relationship('Mandat')
+
+
+#
+# AN: réunions
+#
+
+
+class ActeurReunion(db.Model):
+    __tablename__ = 'acteurs_reunions'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    relation = db.Column(db.Unicode)
+    presence = db.Column(db.Unicode)
+
+    acteur_id = db.Column(db.Unicode, db.ForeignKey('acteurs.id'))
+    acteur = db.relationship('Acteur')
+
+    reunion_id = db.Column(db.Unicode, db.ForeignKey('reunions.id'))
+    reunion = db.relationship('Reunion', back_populates='acteurs')
+
+
+class OrganeReunion(db.Model):
+    __tablename__ = 'organes_reunions'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    relation = db.Column(db.Unicode)
+
+    organe_id = db.Column(db.Unicode, db.ForeignKey('organes.id'))
+    organe = db.relationship('Organe')
+
+    reunion_id = db.Column(db.Unicode, db.ForeignKey('reunions.id'))
+    reunion = db.relationship('Reunion', back_populates='organes')
+
+
+class ODJItem(db.Model):
+    __tablename__ = 'odjitems'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    item = db.Column(db.Unicode)
+
+    reunion_id = db.Column(db.Unicode, db.ForeignKey('reunions.id'))
+    reunion = db.relationship('Reunion', back_populates='items_odj')
+
+
+assoc_odjpoints_dossiers = db.Table(
+    'odjpoints_dossiers',
+    db.Column('odjpoint_id', db.Unicode, db.ForeignKey('odjpoints.id')),
+    db.Column('dossier_id', db.Unicode, db.ForeignKey('dossiers.id')),
+)
+
+class ODJPoint(db.Model):
+    __tablename__ = 'odjpoints'
+    query_class = SearchableQuery
+
+    id = db.Column(db.Unicode, primary_key=True)
+
+    etat = db.Column(db.Unicode)
+    type = db.Column(db.Unicode)
+    objet = db.Column(db.Unicode)
+    comite_secret = db.Column(db.Boolean)
+    ouverture_presse = db.Column(db.Boolean)
+    procedure = db.Column(db.Unicode)
+    nature_travaux = db.Column(db.Unicode)
+
+    date_creation = db.Column(db.DateTime)
+    date_cloture = db.Column(db.DateTime)
+    date_conf_presse = db.Column(db.DateTime)
+
+    dossiers = db.relationship('Dossier', secondary=assoc_odjpoints_dossiers)
+
+    reunion_id = db.Column(db.Unicode, db.ForeignKey('reunions.id'))
+    reunion = db.relationship('Reunion', back_populates='points_odj')
+
+    search_vector = db.Column(TSVectorType('type', 'objet', 'procedure',
+                                           'nature_travaux', 'etat'))
+
+
+class Reunion(db.Model):
+    __tablename__ = 'reunions'
+
+    id = db.Column(db.Unicode, primary_key=True)
+
+    type_reunion = db.Column(db.Unicode)
+    etat = db.Column(db.Unicode)
+    date_creation = db.Column(db.DateTime)
+    date_cloture = db.Column(db.DateTime)
+    date_debut = db.Column(db.DateTime)
+    date_fin = db.Column(db.DateTime)
+
+    lieu_code = db.Column(db.Unicode)
+    lieu_libelle = db.Column(db.Unicode)
+
+    seance_id_jo = db.Column(db.Unicode)
+    seance_date = db.Column(db.DateTime)
+    seance_quantieme = db.Column(db.Unicode)
+
+    # TODO
+    # sessionRef ?
+
+    acteurs = db.relationship('ActeurReunion', back_populates='reunion')
+    organes = db.relationship('OrganeReunion', back_populates='reunion')
+    items_odj = db.relationship('ODJItem', back_populates='reunion')
+    points_odj = db.relationship('ODJPoint', back_populates='reunion')
+
+    search_vector = db.Column(TSVectorType('type_reunion', 'etat',
+                                           'lieu_libelle'))
