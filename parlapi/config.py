@@ -14,6 +14,7 @@ class DefaultConfig(object):
     SQLALCHEMY_DATABASE_URI = \
         'postgresql://parlapi:parlapi@localhost:5432/parlapi'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ECHO = False
     DATA_DIR = os.path.join(BASE_DIR, 'data')
     API_PAGE_SIZE = 10
     SECRET_KEY = 'no-secret-key'
@@ -61,6 +62,7 @@ class EnvironmentConfig(AutoSecretKeyConfig):
     """
     Config for environment-based setup.
     - PARLAPI_DEBUG: 'True' to enable
+    - PARLAPI_DEBUG_SQL: 'True' to enable
     - PARLAPI_DB_URL: database connection URL
     - PARLAPI_DATA_DIR: directory for data files
     - PARLAPI_PAGE_SIZE: default API page size
@@ -68,6 +70,7 @@ class EnvironmentConfig(AutoSecretKeyConfig):
     - PARLAPI_PIWIK_ID: piwik site ID
     """
     DEBUG = os.environ.get('PARLAPI_DEBUG', 'False') == 'True'
+    SQLALCHEMY_ECHO = os.environ.get('PARLAPI_DEBUG_SQL', 'False') == 'True'
 
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'PARLAPI_DB_URL', DefaultConfig.SQLALCHEMY_DATABASE_URI)
