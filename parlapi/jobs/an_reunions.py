@@ -121,29 +121,36 @@ class ImportReunionsJob(BaseANJob):
 
         reunion.acteurs = acteurs
 
-        if json.get('resumeODJ', {}).get('items', None):
-            items = json['resumeODJ']['items']
-            if isinstance(items, basestring):
-                items = [items]
-            reunion.items_odj = [ODJItem(item=i) for i in items]
+        if json.get('ODJ', None):
+            odj = json['ODJ']
 
-        if json.get('pointsODJ', {}).get('pointsODJ', None):
-            points = json['pointsODJ']['pointODJ']
-            if isinstance(points, dict):
-                points = [points]
-            reunion.points_odj = [self.save_point(p) for p in points]
+            if odj.get('resumeODJ', None) and odj['resumeODJ'].get('item', None):
+                items = odj['resumeODJ']['item']
+                if isinstance(items, basestring):
+                    items = [items]
+                reunion.items_odj = [ODJItem(item=i) for i in items]
+
+            if odj.get('pointsODJ', None) and odj['pointsODJ'].get('pointODJ', None):
+                points = odj['pointsODJ']['pointODJ']
+                if isinstance(points, dict):
+                    points = [points]
+                reunion.points_odj = [self.save_point(p) for p in points]
 
     def save_point(self, json):
         cur = self.current
-        self.current = '%s > Point %s' % (cur, jon['uid'])
+        self.current = '%s > Point %s' % (cur, json['uid'])
 
         point, _ = self.get_or_create(ODJPoint, id=json['uid'])
 
         point.objet = json['objet']
         point.type = json['typePointODJ']
         point.procedure = json['procedure']
-        point.nature_travaux = json['natureTravauxODJ']
-        point.date_conf_presse = self.parse_date(json['dateConfPres'])
+
+        if json.get('natureTravauxODJ', None):
+            point.nature_travaux = json['natureTravauxODJ']
+
+        if json.get('dateConfPres', None):
+            point.date_conf_presse = self.parse_date(json['dateConfPres'])
 
         if json.get('comiteSecret', None):
             point.comite_secret = json['comiteSecret'] == 'true'

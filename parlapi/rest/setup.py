@@ -10,16 +10,21 @@ from ..models import (
     Acteur,
     ActeurDocument,
     ActeurDossier,
+    ActeurReunion,
     Amendement,
     Document,
     Dossier,
     Job,
     Legislature,
     Mandat,
+    ODJItem,
+    ODJPoint,
     Organe,
     OrganeDocument,
     OrganeDossier,
+    OrganeReunion,
     Regime,
+    Reunion,
     Scrutin,
     ScrutinGroupe,
     Theme,
@@ -141,6 +146,38 @@ def setup_api(app):
 
         _url = api.detailURL('scrutins')
 
+    class ODJItemBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = ODJItem
+            fields = ('item',)
+
+    class ODJPointBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = ODJPoint
+            fields = ('objet', 'dossiers')
+
+        dossiers = api.nestedList(DossierBaseSchema)
+
+    class ReunionBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = Reunion
+            fields = ('type_reunion', 'date_debut', 'date_fin', 'lieu_libelle',
+                      '_url', 'items_odj', 'points_odj')
+
+        items_odj = api.nestedList(ODJItemBaseSchema)
+        points_odj = api.nestedList(ODJPointBaseSchema)
+        _url = api.detailURL('reunions')
+
+    class ActeurReunionBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = ActeurReunion
+            fields = ('relation', 'presence')
+
+    class OrganeReunionBaseSchema(ma.ModelSchema):
+        class Meta(ParlapiBaseMeta):
+            model = OrganeReunion
+            fields = ('relation',)
+
     # Semi-detailed schemas (for use in some relations)
 
     class MandatListSchema(MandatBaseSchema):
@@ -192,6 +229,18 @@ def setup_api(app):
             fields = AmendementBaseSchema.Meta.fields + ('document',)
 
         document = api.nested(DocumentBaseSchema)
+
+    class ActeurReunionReunionSchema(ActeurReunionBaseSchema):
+        class Meta(ActeurReunionBaseSchema.Meta):
+            fields = ActeurReunionBaseSchema.Meta.fields + ('acteur',)
+
+        acteur = api.nested(ActeurBaseSchema)
+
+    class OrganeReunionReunionSchema(OrganeReunionBaseSchema):
+        class Meta(OrganeReunionBaseSchema.Meta):
+            fields = OrganeReunionBaseSchema.Meta.fields + ('organe',)
+
+        organe = api.nested(OrganeBaseSchema)
 
     # Detailed schemas
 
@@ -303,6 +352,19 @@ def setup_api(app):
         organe = api.nested(OrganeBaseSchema)
         groupes = api.nestedList(ScrutinGroupeSchema)
 
+    class ODJPointReunionSchema(ODJPointBaseSchema):
+        class Meta(ODJPointBaseSchema.Meta):
+            fields = ()
+            exclude = ('reunion', 'id', 'search_vector')
+
+    class ReunionDetailSchema(ReunionBaseSchema):
+        class Meta(ReunionBaseSchema.Meta):
+            fields = ()
+
+        points_odj = api.nestedList(ODJPointReunionSchema)
+        organes = api.nestedList(OrganeReunionReunionSchema)
+        acteurs = api.nestedList(ActeurReunionReunionSchema)
+
     # API creation
 
     api.endpoint(
@@ -411,6 +473,16 @@ def setup_api(app):
         detail_query=prefetched(Scrutin, ['legislature', 'organe',
                                           'groupes.organe',
                                           'gropes.votants.acteur'])
+    )
+
+    api.endpoint(
+        Reunion,
+        ReunionDetailSchema,
+        list_schema=ReunionBaseSchema,
+        description=u'Réunions',
+        list_query=prefetched(Reunion, ['items_odj', 'points_odj.dossiers']),
+        detail_query=prefetched(Reunion, ['items_odj', 'points_odj.dossiers',
+                                          'organes.organe', 'acteurs.acteur'])
     )
 
     return api

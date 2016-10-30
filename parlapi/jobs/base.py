@@ -218,3 +218,4 @@ class BaseANJob(BaseJob):
 
         self.info(u'Job terminé')
         self.update_status(u'ok', jsonzip_url, jsonzip_lmd)
+        db.session.flush()
