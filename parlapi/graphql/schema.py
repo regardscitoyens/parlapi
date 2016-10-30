@@ -9,16 +9,21 @@ from ..models import (
     Acteur as ActeurModel,
     ActeurDocument as ActeurDocumentModel,
     ActeurDossier as ActeurDossierModel,
+    ActeurReunion as ActeurReunionModel,
     Amendement as AmendementModel,
     Document as DocumentModel,
     Dossier as DossierModel,
     Job as JobModel,
     Legislature as LegislatureModel,
     Mandat as MandatModel,
+    ODJItem as ODJItemModel,
+    ODJPoint as ODJPointModel,
     Organe as OrganeModel,
     OrganeDocument as OrganeDocumentModel,
     OrganeDossier as OrganeDossierModel,
+    OrganeReunion as OrganeReunionModel,
     Regime as RegimeModel,
+    Reunion as ReunionModel,
     Scrutin as ScrutinModel,
     ScrutinGroupe as ScrutinGroupeModel,
     Theme as ThemeModel,
@@ -51,6 +56,11 @@ class ActeurDossier(SQLAlchemyObjectType):
         model = ActeurDossierModel
 
 
+class ActeurReunion(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ActeurReunionModel
+
+
 class Amendement(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = AmendementModel
@@ -81,6 +91,16 @@ class Mandat(SQLAlchemyObjectType):
         model = MandatModel
 
 
+class ODJItem(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ODJItemModel
+
+
+class ODJPoint(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ODJPointModel
+
+
 class Organe(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = OrganeModel
@@ -96,9 +116,19 @@ class OrganeDossier(SQLAlchemyObjectType):
         model = OrganeDossierModel
 
 
+class OrganeReunion(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = OrganeReunionModel
+
+
 class Regime(SQLAlchemyObjectType):
     class Meta(ParlapiBaseMeta):
         model = RegimeModel
+
+
+class Reunion(SQLAlchemyObjectType):
+    class Meta(ParlapiBaseMeta):
+        model = ReunionModel
 
 
 class Scrutin(SQLAlchemyObjectType):
@@ -133,6 +163,7 @@ class Query(graphene.ObjectType):
     all_mandats = SQLAlchemyConnectionField(Mandat)
     all_organes = SQLAlchemyConnectionField(Organe)
     all_regimes = SQLAlchemyConnectionField(Regime)
+    all_reunions = SQLAlchemyConnectionField(Reunion)
     all_scrutins = SQLAlchemyConnectionField(Scrutin)
     all_themes = SQLAlchemyConnectionField(Theme)
 
@@ -144,16 +175,21 @@ schema = graphene.Schema(
         Acteur,
         ActeurDocument,
         ActeurDossier,
+        ActeurReunion,
         Amendement,
         Document,
         Dossier,
         Job,
         Legislature,
         Mandat,
+        ODJItem,
+        ODJPoint,
         Organe,
         OrganeDocument,
         OrganeDossier,
+        OrganeReunion,
         Regime,
+        Reunion,
         Scrutin,
         ScrutinGroupe,
         Theme,
