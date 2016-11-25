@@ -1,5 +1,0 @@
-#!/bin/bash
-
-export PARLAPI_CONFIG=parlapi.config.OpenshiftConfig
-
-parlapi update_amo_an

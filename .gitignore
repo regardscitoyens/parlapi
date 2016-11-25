@@ -1,7 +1,0 @@
-.env
-*.egg-info
-*.pyc
-*~
-data/*.json
-data/*.zip
-reference
